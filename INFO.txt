@@ -1,0 +1,11 @@
+Created by Kayden Vandecaveye vand_2041
+
+Assumptions:
+- Currently do not have a try catch block for when a user inputs a string/incorrect type of input for their move.
+(Ex: 0 1 3 or hello)
+- Promote pawn has not been implemented
+
+“I certify that the information contained in this INFO file is complete and accurate.
+I have both read and followed the course policies in the ‘Academic Integrity - Course Policy’ section of the course syllabus.”
+
+Kayden Vandecaveye
