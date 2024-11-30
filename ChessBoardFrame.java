@@ -9,7 +9,7 @@ public class ChessBoardFrame extends JFrame{
     public ChessBoardFrame() {
         setTitle("Chess");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(new Dimension(1000, 1000));
+        setSize(new Dimension(1250, 1250));
         setLayout(new BorderLayout());
     }
     // adds Chess board to the swing frame

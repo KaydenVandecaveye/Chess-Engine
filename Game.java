@@ -1,6 +1,6 @@
 package CSCI1933P2;
-
-import java.util.Scanner;;
+import java.util.Arrays;
+import java.util.Scanner;
 public class Game {
   public static void main(String[] args) {
     Board board = new Board();
@@ -13,6 +13,7 @@ public class Game {
     while (!board.isGameOver()) {
       System.out.println("\n" + board.toString());
       if (colorToMove) {
+        System.out.println("White King pos" + Arrays.toString(board.getWhiteKingPos()));
         // white to move code block
         System.out.println("""          
                 White to move:\
@@ -59,6 +60,7 @@ public class Game {
           }
         }
       } else {
+        System.out.println("Black King pos" + Arrays.toString(board.getBlackKingPos()));
         // black to move code block
         System.out.println("""
                 Black to move:\

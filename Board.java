@@ -3,11 +3,32 @@ public class Board {
     // Instance variables (add more if you need)
     private final Piece[][] board;
 
+    // store king positions for faster lookups (used for testing if a king is in check)
+    private int[] blackKingPos = {0, 4}; // (row, col)
+    private int[] whiteKingPos = {7, 4};// (row, col)
+
+    boolean whiteInCheck = false; // white K in check
+    boolean blackInCheck = false; // black K in check
+
     //default constructor
     public Board() {
-        // initialize the board to chessboard dimensions.
-        this.board = new Piece[8][8];
+        this.board = new Piece[8][8]; // initialize the board to chessboard dimensions.
     }
+    public int[] getBlackKingPos() {
+        return blackKingPos;
+    }
+    public int[] getWhiteKingPos() {
+        return whiteKingPos;
+    }
+    public void setBlackKingPos(int row, int col) {
+        blackKingPos[0] = row;
+        blackKingPos[1] = col;
+    }
+    public void setWhiteKingPos(int row, int col) {
+        whiteKingPos[0] = row;
+        whiteKingPos[1] = col;
+    }
+
     // Accessor Methods
     /**
      * Gets the piece at a particular row and column of the board.
@@ -28,6 +49,51 @@ public class Board {
         piece.col = col;
         piece.row = row;
         board[row][col] = piece;
+    }
+
+    // determines if the given piece is putting the king of the other color in check
+    public boolean isCheck(Piece piece) {
+        // black piece block
+        if (piece != null && piece.isBlack) {
+            int king_row = whiteKingPos[0];
+            int king_col = whiteKingPos[1];
+            // legal move from black piece to white K
+            if (piece.isMoveLegal(this, king_row, king_col)) {
+                whiteInCheck = true;
+                return true;
+            }
+            else {
+                whiteInCheck = false;
+            }
+        }
+        // white piece block
+        else if (piece != null) {
+            int king_row = blackKingPos[0];
+            int king_col = blackKingPos[1];
+            // legal move from white piece to black K
+            if (piece.isMoveLegal(this, king_row, king_col)) {
+                blackInCheck = true;
+                return true;
+            }
+            else {
+                blackInCheck = false;
+            }
+        }
+        return false;
+    }
+
+    // determines if there is a check on the board
+    public boolean checkOnBoard() {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (this.isCheck(board[i][j])) {
+                    return true;
+                }
+            }
+        }
+        whiteInCheck = false;
+        blackInCheck = false;
+        return false;
     }
 
     // Movement helper functions
@@ -256,11 +322,38 @@ public class Board {
      */
     public boolean movePiece(int startRow, int startCol, int endRow, int endCol) {
         if (board[startRow][startCol] != null) {
-            if (verifySourceAndDestination(startRow, startCol, endRow, endCol, board[startRow][startCol].isBlack) && board[startRow][startCol].isMoveLegal(this, endRow,endCol)) {
+            if (board[startRow][startCol].isMoveLegal(this, endRow,endCol)) {
                 Piece piece = board[startRow][startCol];
+                // simulate move to ensure legality with checks
                 board[endRow][endCol] = piece;
                 board[startRow][startCol] = null;
                 piece.setPosition(endRow, endCol);
+                // if there is still check on board of the current pieces color, revert move
+                this.checkOnBoard();
+                if (piece.isBlack) {
+                    if (blackInCheck) {
+                        board[endRow][endCol] = null;
+                        board[startRow][startCol] = piece;
+                        piece.setPosition(startRow, startCol);
+                        return false;
+                    }
+                }
+                else {
+                    if (whiteInCheck) {
+                        board[endRow][endCol] = null;
+                        board[startRow][startCol] = piece;
+                        piece.setPosition(startRow, startCol);
+                        return false;
+                    }
+                }
+                if (piece instanceof King) {
+                    if (piece.isBlack) {
+                        setBlackKingPos(endRow,endCol);
+                    }
+                    else {
+                        setWhiteKingPos(endRow,endCol);
+                    }
+                }
                 return true;
             }
         }
