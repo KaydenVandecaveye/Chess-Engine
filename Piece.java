@@ -14,14 +14,24 @@ public abstract class Piece {
     protected char representation;
 
     /**
-     * Checks if a move to a destination square is legal.
-     * Hint: Use your verification methods from Board in each implementation of this method.
+     * Checks if a move to a destination square is legal. (canMoveTo() method)
+     * Includes check rules from the isCheck() & checkOnBoard() methods.
      * @param board     The game board.
      * @param endRow    The row of the destination square.
      * @param endCol    The column of the destination square.
      * @return True if the move to the destination square is legal, false otherwise.
      */
     public abstract boolean isMoveLegal(Board board, int endRow, int endCol);
+
+    /**
+     * Checks if it is legally within a pieces movement pattern to move to the destination,
+     * Does not deal with check rules.
+     * @param board     The game board.
+     * @param endRow    The row of the destination square.
+     * @param endCol    The column of the destination square.
+     * @return True if the move to the destination square is legal, false otherwise.
+     */
+    public abstract boolean canMoveTo(Board board, int endRow, int endCol);
 
     /**
      * Sets the internal position of the piece.

@@ -41,7 +41,7 @@ public class Game {
 
         // ensure move is legal
         while (colorToMove) {
-          if (!board.movePiece(startRow, startCol, endRow, endCol)) {
+          if (!board.board[startRow][startCol].isMoveLegal(board, endRow, endCol)) {
             System.out.println("""
                     Incorrect Input Try again:
                     White to move:\
@@ -88,7 +88,7 @@ public class Game {
 
         // ensure move is legal
         while (!colorToMove) {
-          if (!board.movePiece(startRow, startCol, endRow, endCol)) {
+          if (!board.board[startRow][startCol].isMoveLegal(board, endRow, endCol)) {
             System.out.println("""
                     Incorrect Input Try again:
                     Black to move:\

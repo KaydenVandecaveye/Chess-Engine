@@ -63,14 +63,9 @@ public class Pawn extends Piece {
             }
         }
     }
-    /**
-     * Checks if a move to a destination square is legal.
-     * @param board     The game board.
-     * @param endRow    The row of the destination square.
-     * @param endCol    The column of the destination square.
-     * @return True if the move to the destination square is legal, false otherwise.
-     */
-    public boolean isMoveLegal(Board board, int endRow, int endCol) {
+
+    @Override
+    public boolean canMoveTo(Board board, int endRow, int endCol) {
         if (board.verifyVertical(row, col, endRow, endCol) && board.getPiece(endRow, endCol) == null) {
             // Case 1: Forward movement to empty square.
             // Determine if the distance being moved is valid.
@@ -99,5 +94,35 @@ public class Pawn extends Piece {
             return false;
         }
     }
-}
 
+    /**
+     * Checks if a move to a destination square is legal.
+     * @param board     The game board.
+     * @param endRow    The row of the destination square.
+     * @param endCol    The column of the destination square.
+     * @return True if the move to the destination square is legal, false otherwise.
+     */
+    public boolean isMoveLegal(Board board, int endRow, int endCol) {
+        int startRow = row;
+        int startCol = col;
+        if (!canMoveTo(board,endRow,endCol)) {
+            return false;
+        }
+        //simulate move
+        board.movePiece(row,col,endRow,endCol);
+        board.checkOnBoard();
+
+        // invalid move, leaves black in check
+        if (isBlack && board.blackInCheck) {
+            board.movePiece(endRow,endCol,startRow,startCol);
+            return false;
+        }
+        // invalid move, leaves white in check
+        if (!isBlack && board.whiteInCheck) {
+            board.movePiece(endRow,endCol,startRow,startCol);
+            return false;
+        }
+        board.movePiece(endRow,endCol,startRow,startCol);
+        return true;
+    }
+}

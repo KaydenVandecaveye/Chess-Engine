@@ -1,7 +1,8 @@
 package CSCI1933P2;
+
 public class Board {
     // Instance variables (add more if you need)
-    private final Piece[][] board;
+    public final Piece[][] board;
 
     // store king positions for faster lookups (used for testing if a king is in check)
     private int[] blackKingPos = {0, 4}; // (row, col)
@@ -52,13 +53,14 @@ public class Board {
     }
 
     // determines if the given piece is putting the king of the other color in check
+    // updates blackInCheck & whiteInCheck fields if a given piece puts a king in check
     public boolean isCheck(Piece piece) {
         // black piece block
         if (piece != null && piece.isBlack) {
             int king_row = whiteKingPos[0];
             int king_col = whiteKingPos[1];
             // legal move from black piece to white K
-            if (piece.isMoveLegal(this, king_row, king_col)) {
+            if (piece.canMoveTo(this, king_row, king_col)) {
                 whiteInCheck = true;
                 return true;
             }
@@ -71,7 +73,7 @@ public class Board {
             int king_row = blackKingPos[0];
             int king_col = blackKingPos[1];
             // legal move from white piece to black K
-            if (piece.isMoveLegal(this, king_row, king_col)) {
+            if (piece.canMoveTo(this, king_row, king_col)) {
                 blackInCheck = true;
                 return true;
             }
@@ -83,17 +85,16 @@ public class Board {
     }
 
     // determines if there is a check on the board
-    public boolean checkOnBoard() {
+    public void checkOnBoard() {
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 if (this.isCheck(board[i][j])) {
-                    return true;
+                    return;
                 }
             }
         }
         whiteInCheck = false;
         blackInCheck = false;
-        return false;
     }
 
     // Movement helper functions
@@ -322,30 +323,10 @@ public class Board {
      */
     public boolean movePiece(int startRow, int startCol, int endRow, int endCol) {
         if (board[startRow][startCol] != null) {
-            if (board[startRow][startCol].isMoveLegal(this, endRow,endCol)) {
                 Piece piece = board[startRow][startCol];
-                // simulate move to ensure legality with checks
                 board[endRow][endCol] = piece;
                 board[startRow][startCol] = null;
                 piece.setPosition(endRow, endCol);
-                // if there is still check on board of the current pieces color, revert move
-                this.checkOnBoard();
-                if (piece.isBlack) {
-                    if (blackInCheck) {
-                        board[endRow][endCol] = null;
-                        board[startRow][startCol] = piece;
-                        piece.setPosition(startRow, startCol);
-                        return false;
-                    }
-                }
-                else {
-                    if (whiteInCheck) {
-                        board[endRow][endCol] = null;
-                        board[startRow][startCol] = piece;
-                        piece.setPosition(startRow, startCol);
-                        return false;
-                    }
-                }
                 if (piece instanceof King) {
                     if (piece.isBlack) {
                         setBlackKingPos(endRow,endCol);
@@ -355,13 +336,14 @@ public class Board {
                     }
                 }
                 return true;
-            }
         }
         return false;
     }
 
+
+
     /**
-     * Returns true if there are fewer than TWO kings on the board.
+     * Returns true if a given color is in check and no legal moves block / evade check.
      * @return If the game is in a game over state.
      */
     public boolean isGameOver() {
