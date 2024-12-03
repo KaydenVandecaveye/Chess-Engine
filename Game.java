@@ -13,7 +13,10 @@ public class Game {
     while (!board.isGameOver()) {
       System.out.println("\n" + board.toString());
       if (colorToMove) {
+        board.checkOnBoard();
         System.out.println("White King pos" + Arrays.toString(board.getWhiteKingPos()));
+        System.out.println("Black in Check:" + board.blackInCheck);
+        System.out.println("White in Check:" + board.whiteInCheck);
         // white to move code block
         System.out.println("""          
                 White to move:\
@@ -60,7 +63,10 @@ public class Game {
           }
         }
       } else {
+        board.checkOnBoard();
         System.out.println("Black King pos" + Arrays.toString(board.getBlackKingPos()));
+        System.out.println("Black in Check:" + board.blackInCheck);
+        System.out.println("White in Check:" + board.whiteInCheck);
         // black to move code block
         System.out.println("""
                 Black to move:\
@@ -120,9 +126,9 @@ public class Game {
     }
         System.out.println(board.toString());
         if (whiteKing) {
-            System.out.println("Black King was taken, White wins.");
+            System.out.println("Black is in Checkmate, White wins.");
       } else {
-            System.out.println("White King was taken, Black wins.");
+            System.out.println("White is in Checkmate, Black wins.");
       }
     }
   }

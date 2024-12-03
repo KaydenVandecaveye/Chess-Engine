@@ -26,6 +26,7 @@ public class Rook extends Piece {
     public boolean isMoveLegal(Board board, int endRow, int endCol) {
         int startRow = row;
         int startCol = col;
+        Piece capturedPiece = board.board[endRow][endCol]; // backup captured piece
         if (!canMoveTo(board,endRow,endCol)) {
             return false;
         }
@@ -36,14 +37,23 @@ public class Rook extends Piece {
         // invalid move, leaves black in check
         if (isBlack && board.blackInCheck) {
             board.movePiece(endRow,endCol,startRow,startCol);
+            if (capturedPiece != null) {
+                board.setPiece(endRow,endCol,capturedPiece);
+            }
             return false;
         }
         // invalid move, leaves white in check
         if (!isBlack && board.whiteInCheck) {
             board.movePiece(endRow,endCol,startRow,startCol);
+            if (capturedPiece != null) {
+                board.setPiece(endRow,endCol,capturedPiece);
+            }
             return false;
         }
         board.movePiece(endRow,endCol,startRow,startCol);
+        if (capturedPiece != null) {
+            board.setPiece(endRow,endCol,capturedPiece);
+        }
         return true;
     }
 }

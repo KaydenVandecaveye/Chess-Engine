@@ -8,8 +8,8 @@ public class Board {
     private int[] blackKingPos = {0, 4}; // (row, col)
     private int[] whiteKingPos = {7, 4};// (row, col)
 
-    boolean whiteInCheck = false; // white K in check
-    boolean blackInCheck = false; // black K in check
+    boolean whiteInCheck = false; // white K under attack
+    boolean blackInCheck = false; // black K under attack
 
     //default constructor
     public Board() {
@@ -340,24 +340,54 @@ public class Board {
         return false;
     }
 
+    public int countLegalMoves (Piece piece) {
+        int count = 0;
+        for (int i = 0; i < 8; i++){
+            for (int j = 0; j < 8; j++) {
+                if(i != piece.row && j != piece.col && piece.isMoveLegal(this,i,j)){
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+    public boolean legalMoveOnBoard(boolean isBlack) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (board[i][j] != null && board[i][j].isBlack == isBlack) {
+                    if (countLegalMoves(board[i][j]) > 0) { // legal move available
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
+//    public boolean isGameOver() {
+//        int count = 0;
+//        for (int i = 0; i < 8; i++) {
+//            for (int j = 0; j < 8; j++) {
+//                if (board[i][j] instanceof King) {
+//                    count++;
+//                }
+//            }
+//        }
+//        return count != 2;
+//    }
 
     /**
      * Returns true if a given color is in check and no legal moves block / evade check.
      * @return If the game is in a game over state.
      */
     public boolean isGameOver() {
-        int count = 0;
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (board[i][j] != null) {
-                    if (board[i][j] instanceof King) {
-                        count++;
-                    }
-                }
-            }
+        if (whiteInCheck) {
+            return !legalMoveOnBoard(false);
         }
-        return !(count == 2);
+        else if (blackInCheck) {
+            return !legalMoveOnBoard(true);
+        }
+        return false;
     }
 
     /**
