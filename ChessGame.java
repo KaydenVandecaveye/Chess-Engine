@@ -1,0 +1,227 @@
+package CSCI1933P2;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+/**
+ * Class responsible for the GUI of the chess board & GUI game functionality.
+ */
+public class ChessGame extends JFrame {
+    private final JPanel boardPanel;
+    private JLabel selectedPiece = null;
+    private int selectedPieceRow = -1;
+    private int selectedPieceCol = -1;
+    private boolean colorToMove = true;
+    private JPanel selectedSquare = null;
+    private final JPanel[][] squares = new JPanel[8][8];
+    private final Board chessBoard;
+
+    public ChessGame(Board board) {
+        chessBoard = board;
+
+        // build frame
+        setSize(600,600);
+        setTitle("Chess");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // build chess board
+        boardPanel = new JPanel(new GridLayout(8,8));
+        initializeBoard();
+        initializePieces();
+        add(boardPanel, BorderLayout.CENTER);
+
+        setVisible(true);
+    }
+
+    /**
+     * Initializes GUI chess boards starting position.
+     */
+    private void initializeBoard() {
+//        Color darkSqrs = new Color(66, 40, 14);
+//        Color lightSqrs = new Color(196, 164, 132);
+        boolean isBlack = false;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                final int row = i;
+                final int col = j;
+
+                JPanel square = new JPanel(new BorderLayout());
+                if (isBlack) {
+                    square.setBackground(Color.LIGHT_GRAY);
+                }
+                else {
+                    square.setBackground(Color.WHITE);
+                }
+
+                isBlack = !isBlack;
+                boardPanel.add(square);
+                squares[i][j] = square;
+
+                square.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        handleSquareClick(square, row, col);
+                    }
+                });
+            }
+            isBlack = !isBlack;
+        }
+    }
+
+    /**
+     * Gets (row,col) position of a passed in Jpanel.
+     * @param panel (square on board)
+     * @return position of panel
+     */
+    private int[] getPosition(JPanel panel) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (squares[i][j] == panel) {
+                    return new int[] {i, j};
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Moves a piece on both the GUI and underlying board for game logic
+     * @param board underlying game logic representation of chess board.
+     * @param piece visual representation of piece being moved.
+     * @param source GUI square piece begins on.
+     * @param destination GUI square piece ends on.
+     */
+    private void movePiece(Board board, JLabel piece, JPanel source, JPanel destination) {
+        // initialize coords
+        int sourceRow = getPosition(source)[0];
+        int sourceCol = getPosition(source)[1];
+        int destRow = getPosition(destination)[0];
+        int destCol = getPosition(destination)[1];
+
+        source.remove(piece);
+        source.repaint();
+
+        if (destination.getComponentCount() == 0) { // move to empty square
+            destination.add(piece);
+            destination.revalidate();
+            destination.repaint();
+        }
+        else { // move to occupied square
+            destination.remove(0);
+        }
+        destination.add(piece);
+        destination.revalidate();
+        destination.repaint();
+
+        // move piece for game logic
+        board.movePiece(sourceRow, sourceCol, destRow, destCol);
+    }
+
+    /**
+     * Shows all legal moves for a clicked piece
+     * @param square square the clicked piece is on.
+     * @param row
+     * @param col
+     */
+    private void handleSquareClick(JPanel square, int row, int col) {
+        // Case 1: PLayer wants to move to a highlighted square. (moving previously selected piece)
+        if (square.getBackground().equals(new Color(255, 110, 75)) && selectedPiece != null) {
+            if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isMoveLegal(chessBoard,row,col)) {
+                movePiece(chessBoard,selectedPiece,selectedSquare,squares[row][col]);
+            }
+            colorToMove = !colorToMove;
+            resetHighlights();
+            chessBoard.checkOnBoard();
+        }
+        // Case 2: Player clicks on a non highlighted square. (reveal available moves)
+        else if (square.getComponentCount() > 0) {
+            // reset highlighting
+            resetHighlights();
+            Component component = square.getComponent(0);
+            if (component instanceof JLabel) {
+                selectedPiece = (JLabel) component;
+                selectedPieceRow = row;
+                selectedPieceCol = col;
+                selectedSquare = squares[row][col];
+
+                if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isBlack != colorToMove) {
+
+                    // if so generate all moves and highlight them
+                    int[][] legalMoves = chessBoard.board[row][col].generateLegalMoves(chessBoard);
+                    highlightMoves(legalMoves);
+                }
+            }
+        }
+    }
+
+    /**
+     * "highlights" moves from a passed in coordinate array.
+     * @param moves 2d array containing moves.
+     */
+    private void highlightMoves(int[][] moves) {
+        for (int[] move : moves) {
+            int moveRow = move[0];
+            int moveCol = move[1];
+            squares[moveRow][moveCol].setBackground(new Color(255, 110, 75));
+        }
+    }
+
+    /**
+     * removes all highlights from the GUI board representation.
+     */
+    private void resetHighlights() {
+        boolean isBlack = false;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (isBlack) {
+                    squares[i][j].setBackground(Color.LIGHT_GRAY);
+                }
+                else {
+                    squares[i][j].setBackground(Color.WHITE);
+                }
+                isBlack = !isBlack;
+            }
+            isBlack = !isBlack;
+        }
+    }
+
+    /**
+     * Initializes pieces on GUI board representation in the normal starting chess position.
+     */
+    private void initializePieces() {
+        String[] blackBackRow = {"♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"};
+        String blackPawn = "♟";
+        String[] whiteBackRow = {"♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"};
+        String whitePawn = "♙";
+
+        for (int col = 0; col < 8; col++) {
+            // black pieces
+            addPiece(0,col,blackBackRow[col]);
+            addPiece(1,col,blackPawn);
+            // white pieces
+            addPiece(7,col,whiteBackRow[col]);
+            addPiece(6,col,whitePawn);
+        }
+    }
+
+    /**
+     * Adds a given piece to GUI board representation based on passed in coordinates.
+     * @param row
+     * @param col
+     * @param piece
+     */
+    private void addPiece(int row, int col, String piece) {
+        JLabel pieceLabel = new JLabel(piece, SwingConstants.CENTER);
+        pieceLabel.setFont(new Font("Serif",Font.BOLD,60));
+        squares[row][col].add(pieceLabel);
+    }
+
+    public static void main(String[] args) {
+        Board board = new Board();
+        Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", board);
+
+        ChessGame chess = new ChessGame(board);
+    }
+}

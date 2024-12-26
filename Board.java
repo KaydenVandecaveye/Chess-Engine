@@ -340,6 +340,12 @@ public class Board {
         return false;
     }
 
+    /**
+     * legalMoveOnBoard() helper function.
+     * counts the # of legal moves a given piece has.
+     * @param piece given piece.
+     * @return # of legal moves.
+     */
     public int countLegalMoves (Piece piece) {
         int count = 0;
         for (int i = 0; i < 8; i++){
@@ -351,6 +357,12 @@ public class Board {
         }
         return count;
     }
+
+    /**
+     * Used to check for checkmate. Checks if there is a legal move for the given color. (T for Black, F for White)
+     * @param isBlack given color.
+     * @return Returns true if there is a legal move for the color inputted.
+     */
     public boolean legalMoveOnBoard(boolean isBlack) {
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -364,21 +376,9 @@ public class Board {
         return false;
     }
 
-//    public boolean isGameOver() {
-//        int count = 0;
-//        for (int i = 0; i < 8; i++) {
-//            for (int j = 0; j < 8; j++) {
-//                if (board[i][j] instanceof King) {
-//                    count++;
-//                }
-//            }
-//        }
-//        return count != 2;
-//    }
-
     /**
      * Returns true if a given color is in check and no legal moves block / evade check.
-     * @return If the game is in a game over state.
+     * @return If the game is in a game over state / checkmate.
      */
     public boolean isGameOver() {
         if (whiteInCheck) {

@@ -90,7 +90,7 @@ public class Pawn extends Piece {
             }
         }
         else {
-            // Case 3: Moving in a non-adjacent column. (illegal move)
+            // Case 4: Moving in a non-adjacent column. (illegal move)
             return false;
         }
     }

@@ -1,4 +1,7 @@
 package CSCI1933P2;
+
+import java.util.Arrays;
+
 public abstract class Piece {
 
     // Piece object's internal row position
@@ -73,5 +76,19 @@ public abstract class Piece {
      */
     public String toString() {
         return representation + "";
+    }
+
+    public int[][] generateLegalMoves(Board board) {
+        int[][] moves = new int[27][2];
+        int movesIdx = 0;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if ((row != i || j != col) && isMoveLegal(board,i,j)) {
+                    moves[movesIdx] = new int[] {i, j};
+                    movesIdx++;
+                }
+            }
+        }
+        return Arrays.copyOf(moves,movesIdx);
     }
 }

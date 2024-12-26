@@ -31,8 +31,8 @@ public class Game {
         int endCol = Integer.parseInt(inputs[3]);
 
         // ensure piece being moved is correct color
-        while (board.getPiece(startRow, startCol).isBlack) {
-          System.out.println("Incorrect Color to Move Try again.");
+        while (board.getPiece(startRow, startCol) == null || board.getPiece(startRow, startCol).isBlack) {
+          System.out.println("Invalid Move, Try again.");
           System.out.println("White to move. \n");
           input = s.nextLine();
           inputs = input.split(" ");
@@ -58,6 +58,7 @@ public class Game {
             endRow = Integer.parseInt(inputs[2]);
             endCol = Integer.parseInt(inputs[3]);
           } else {
+            System.out.println(Arrays.deepToString(board.getPiece(startRow, startCol).generateLegalMoves(board)));
             board.movePiece(startRow, startCol, endRow, endCol);
             colorToMove = false;
           }
@@ -81,8 +82,8 @@ public class Game {
         int endCol = Integer.parseInt(inputs[3]);
 
         // ensure piece being moved is correct color
-        while (!board.getPiece(startRow, startCol).isBlack) {
-          System.out.println("Incorrect Color to Move Try again.");
+        while (board.getPiece(startRow, startCol) == null || !board.getPiece(startRow, startCol).isBlack) {
+          System.out.println("Invalid Move, Try again.");
           System.out.println("Black to move. \n");
           input = s.nextLine();
           inputs = input.split(" ");
