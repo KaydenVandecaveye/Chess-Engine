@@ -319,11 +319,17 @@ public class Board {
      * @param startCol  The starting column of the move.
      * @param endRow    The ending row of the move.
      * @param endCol    The ending column of the move.
-     * @return Whether the move was successfully completed or not. (Moves are not completed if they are not legal.)
+     * @param sim   T or F for if the move is a simulated move or not. (Used so pawns aren't promoted when checking if a move leaves player in check)
      */
-    public boolean movePiece(int startRow, int startCol, int endRow, int endCol) {
+    public void movePiece(int startRow, int startCol, int endRow, int endCol, boolean sim) {
         if (board[startRow][startCol] != null) {
                 Piece piece = board[startRow][startCol];
+                if (piece instanceof Pawn && piece.isBlack && endRow == 7 && !sim) {
+                    piece = ((Pawn) piece).promotePawn(this,endRow,endCol,true);
+                }
+                else if (piece instanceof Pawn && !piece.isBlack && endRow == 0 && !sim) {
+                    piece = ((Pawn) piece).promotePawn(this,endRow,endCol,false);
+                }
                 board[endRow][endCol] = piece;
                 board[startRow][startCol] = null;
                 piece.setPosition(endRow, endCol);
@@ -335,9 +341,7 @@ public class Board {
                         setWhiteKingPos(endRow,endCol);
                     }
                 }
-                return true;
         }
-        return false;
     }
 
     /**
@@ -439,5 +443,3 @@ public class Board {
         return out.toString();
     }
 }
-
-

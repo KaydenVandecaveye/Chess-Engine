@@ -36,32 +36,8 @@ public class Pawn extends Piece {
      * @param col Current col of the pawn
      * @param isBlack Color of the pawn
      */
-    public void promotePawn(Board board, int row, int col, boolean isBlack) {
-        Scanner s = new Scanner(System.in);
-        if ((isBlack && row == 0) || (!isBlack && row == 8)) {
-            System.out.println("What piece would you like to promote to? " +
-                    "\n Press 1 for Queen " +
-                    "\n Press 2 for Rook" +
-                    "\n Press 3 for Bishop" +
-                    "\n Press 4 for Knight \n");
-            String choice = s.nextLine();
-            switch (choice) {
-                case "1":
-                    Queen queen = new Queen(row,col,isBlack);
-                    break;
-                case "2":
-                    Rook rook = new Rook(row,col,isBlack);
-                    break;
-                case "3":
-                    Bishop bishop = new Bishop(row,col,isBlack);
-                    break;
-                case "4":
-                    Knight knight = new Knight(row,col,isBlack);
-                    break;
-                default:
-                    System.out.println("That is not a valid choice");
-            }
-        }
+    public Piece promotePawn(Board board, int row, int col, boolean isBlack) {
+        return new Queen(row,col,isBlack);
     }
 
     @Override
@@ -93,46 +69,5 @@ public class Pawn extends Piece {
             // Case 4: Moving in a non-adjacent column. (illegal move)
             return false;
         }
-    }
-
-    /**
-     * Checks if a move to a destination square is legal.
-     * @param board     The game board.
-     * @param endRow    The row of the destination square.
-     * @param endCol    The column of the destination square.
-     * @return True if the move to the destination square is legal, false otherwise.
-     */
-    public boolean isMoveLegal(Board board, int endRow, int endCol) {
-        int startRow = row;
-        int startCol = col;
-        Piece capturedPiece = board.board[endRow][endCol]; // backup captured piece
-        if (!canMoveTo(board,endRow,endCol)) {
-            return false;
-        }
-        //simulate move
-        board.movePiece(row,col,endRow,endCol);
-        board.checkOnBoard();
-
-        // invalid move, leaves black in check
-        if (isBlack && board.blackInCheck) {
-            board.movePiece(endRow,endCol,startRow,startCol);
-            if (capturedPiece != null) {
-                board.setPiece(endRow,endCol,capturedPiece);
-            }
-            return false;
-        }
-        // invalid move, leaves white in check
-        if (!isBlack && board.whiteInCheck) {
-            board.movePiece(endRow,endCol,startRow,startCol);
-            if (capturedPiece != null) {
-                board.setPiece(endRow,endCol,capturedPiece);
-            }
-            return false;
-        }
-        board.movePiece(endRow,endCol,startRow,startCol);
-        if (capturedPiece != null) {
-            board.setPiece(endRow,endCol,capturedPiece);
-        }
-        return true;
     }
 }

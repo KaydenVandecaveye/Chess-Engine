@@ -59,7 +59,7 @@ public class Game {
             endCol = Integer.parseInt(inputs[3]);
           } else {
             System.out.println(Arrays.deepToString(board.getPiece(startRow, startCol).generateLegalMoves(board)));
-            board.movePiece(startRow, startCol, endRow, endCol);
+            board.movePiece(startRow, startCol, endRow, endCol,false);
             colorToMove = false;
           }
         }
@@ -109,7 +109,7 @@ public class Game {
             endRow = Integer.parseInt(inputs[2]);
             endCol = Integer.parseInt(inputs[3]);
           } else {
-            board.movePiece(startRow, startCol, endRow, endCol);
+            board.movePiece(startRow, startCol, endRow, endCol,false);
             colorToMove = true;
           }
         }

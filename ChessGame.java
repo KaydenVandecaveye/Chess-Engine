@@ -8,14 +8,18 @@ import java.awt.event.MouseEvent;
  * Class responsible for the GUI of the chess board & GUI game functionality.
  */
 public class ChessGame extends JFrame {
+    // board representation fields
     private final JPanel boardPanel;
+    private final JPanel[][] squares = new JPanel[8][8]; // 2d array of GUI representation of the boards squares
+    private final Board chessBoard; // game logic representation of ches game
+
+    // piece/square selection fields
     private JLabel selectedPiece = null;
     private int selectedPieceRow = -1;
     private int selectedPieceCol = -1;
-    private boolean colorToMove = true;
     private JPanel selectedSquare = null;
-    private final JPanel[][] squares = new JPanel[8][8];
-    private final Board chessBoard;
+
+    private boolean colorToMove = true; // T for W, F for B
 
     public ChessGame(Board board) {
         chessBoard = board;
@@ -39,14 +43,11 @@ public class ChessGame extends JFrame {
      * Initializes GUI chess boards starting position.
      */
     private void initializeBoard() {
-//        Color darkSqrs = new Color(66, 40, 14);
-//        Color lightSqrs = new Color(196, 164, 132);
         boolean isBlack = false;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 final int row = i;
                 final int col = j;
-
                 JPanel square = new JPanel(new BorderLayout());
                 if (isBlack) {
                     square.setBackground(Color.LIGHT_GRAY);
@@ -103,20 +104,34 @@ public class ChessGame extends JFrame {
         source.remove(piece);
         source.repaint();
 
-        if (destination.getComponentCount() == 0) { // move to empty square
+        if (destination.getComponentCount() > 0) { // move to occupied square
+            destination.remove(0);
+        }
+
+        // pawn promotion check
+        if (board.getPiece(sourceRow,sourceCol) instanceof Pawn) {
+            Piece pawn = board.getPiece(sourceRow,sourceCol);
+            if (pawn.isBlack && destRow == 7) {
+                addPiece(destRow,destCol,"♛");
+            }
+            else if (!pawn.isBlack && destRow == 0) {
+                addPiece(destRow,destCol,"♕");
+            }
+            else {
+                destination.add(piece);
+                destination.revalidate();
+            }
+            destination.revalidate();
+            destination.repaint();
+        }
+        else {
             destination.add(piece);
             destination.revalidate();
             destination.repaint();
         }
-        else { // move to occupied square
-            destination.remove(0);
-        }
-        destination.add(piece);
-        destination.revalidate();
-        destination.repaint();
 
         // move piece for game logic
-        board.movePiece(sourceRow, sourceCol, destRow, destCol);
+        board.movePiece(sourceRow, sourceCol, destRow, destCol,false);
     }
 
     /**
@@ -126,7 +141,7 @@ public class ChessGame extends JFrame {
      * @param col
      */
     private void handleSquareClick(JPanel square, int row, int col) {
-        // Case 1: PLayer wants to move to a highlighted square. (moving previously selected piece)
+        // Case 1: PLayer wants to move to a highlighted square. (move previously selected piece)
         if (square.getBackground().equals(new Color(255, 110, 75)) && selectedPiece != null) {
             if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isMoveLegal(chessBoard,row,col)) {
                 movePiece(chessBoard,selectedPiece,selectedSquare,squares[row][col]);
@@ -141,14 +156,14 @@ public class ChessGame extends JFrame {
             resetHighlights();
             Component component = square.getComponent(0);
             if (component instanceof JLabel) {
+                // reset selected piece field to newly pressed piece
                 selectedPiece = (JLabel) component;
                 selectedPieceRow = row;
                 selectedPieceCol = col;
                 selectedSquare = squares[row][col];
 
                 if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isBlack != colorToMove) {
-
-                    // if so generate all moves and highlight them
+                    // generate legal moves and highlight
                     int[][] legalMoves = chessBoard.board[row][col].generateLegalMoves(chessBoard);
                     highlightMoves(legalMoves);
                 }
@@ -212,7 +227,7 @@ public class ChessGame extends JFrame {
      * @param col
      * @param piece
      */
-    private void addPiece(int row, int col, String piece) {
+    public void addPiece(int row, int col, String piece) {
         JLabel pieceLabel = new JLabel(piece, SwingConstants.CENTER);
         pieceLabel.setFont(new Font("Serif",Font.BOLD,60));
         squares[row][col].add(pieceLabel);
@@ -221,7 +236,6 @@ public class ChessGame extends JFrame {
     public static void main(String[] args) {
         Board board = new Board();
         Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", board);
-
         ChessGame chess = new ChessGame(board);
     }
 }

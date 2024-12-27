@@ -24,7 +24,48 @@ public abstract class Piece {
      * @param endCol    The column of the destination square.
      * @return True if the move to the destination square is legal, false otherwise.
      */
-    public abstract boolean isMoveLegal(Board board, int endRow, int endCol);
+    /**
+     * Checks if a move to a destination square is legal.
+     * @param board     The game board.
+     * @param endRow    The row of the destination square.
+     * @param endCol    The column of the destination square.
+     * @return True if the move to the destination square is legal, false otherwise.
+     */
+    public boolean isMoveLegal(Board board, int endRow, int endCol) {
+        board.checkOnBoard();
+        boolean sim = true;
+        int startRow = row;
+        int startCol = col;
+        Piece capturedPiece = board.board[endRow][endCol]; // backup captured piece
+        if (!canMoveTo(board,endRow,endCol)) {
+            return false;
+        }
+        //simulate move
+        board.movePiece(row,col,endRow,endCol,sim);
+        board.checkOnBoard();
+
+        // invalid move, leaves black in check
+        if (isBlack && board.blackInCheck) {
+            board.movePiece(endRow,endCol,startRow,startCol,sim);
+            if (capturedPiece != null) {
+                board.setPiece(endRow,endCol,capturedPiece);
+            }
+            return false;
+        }
+        // invalid move, leaves white in check
+        if (!isBlack && board.whiteInCheck) {
+            board.movePiece(endRow,endCol,startRow,startCol,sim);
+            if (capturedPiece != null) {
+                board.setPiece(endRow,endCol,capturedPiece);
+            }
+            return false;
+        }
+        board.movePiece(endRow,endCol,startRow,startCol,sim);
+        if (capturedPiece != null) {
+            board.setPiece(endRow,endCol,capturedPiece);
+        }
+        return true;
+    }
 
     /**
      * Checks if it is legally within a pieces movement pattern to move to the destination,
