@@ -354,7 +354,7 @@ public class Board {
         int count = 0;
         for (int i = 0; i < 8; i++){
             for (int j = 0; j < 8; j++) {
-                if(i != piece.row && j != piece.col && piece.isMoveLegal(this,i,j)){
+                if((i != piece.row || j != piece.col) && piece.isMoveLegal(this,i,j)){
                     count++;
                 }
             }

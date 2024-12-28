@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JOptionPane;
 
 /**
  * Class responsible for the GUI of the chess board & GUI game functionality.
@@ -72,6 +73,28 @@ public class ChessGame extends JFrame {
     }
 
     /**
+     * Once there the game is over, we iterate through the board to determine who won.
+     * @return T for White won, B for Black won.
+     */
+    public boolean decideWinner() {
+        return !colorToMove;
+    }
+
+    public void showCheckmateDialog(boolean whiteWon) {
+        String message;
+        Icon image;
+        if (whiteWon) {
+            message = "Checkmate, White Wins!";
+            //image = new ImageIcon("/Users/kaydenvandecaveye/PersonalProjects/SWE/Chess/whiteking.png");
+        }
+        else {
+            message = "Checkmate, Black Wins!";
+            //image = new ImageIcon("/Users/kaydenvandecaveye/PersonalProjects/SWE/Chess/blackking.png");
+        }
+        JOptionPane.showMessageDialog(this, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
      * Gets (row,col) position of a passed in Jpanel.
      * @param panel (square on board)
      * @return position of panel
@@ -89,12 +112,11 @@ public class ChessGame extends JFrame {
 
     /**
      * Moves a piece on both the GUI and underlying board for game logic
-     * @param board underlying game logic representation of chess board.
      * @param piece visual representation of piece being moved.
      * @param source GUI square piece begins on.
      * @param destination GUI square piece ends on.
      */
-    private void movePiece(Board board, JLabel piece, JPanel source, JPanel destination) {
+    private void movePiece(JLabel piece, JPanel source, JPanel destination) {
         // initialize coords
         int sourceRow = getPosition(source)[0];
         int sourceCol = getPosition(source)[1];
@@ -109,8 +131,8 @@ public class ChessGame extends JFrame {
         }
 
         // pawn promotion check
-        if (board.getPiece(sourceRow,sourceCol) instanceof Pawn) {
-            Piece pawn = board.getPiece(sourceRow,sourceCol);
+        if (chessBoard.getPiece(sourceRow,sourceCol) instanceof Pawn) {
+            Piece pawn = chessBoard.getPiece(sourceRow,sourceCol);
             if (pawn.isBlack && destRow == 7) {
                 addPiece(destRow,destCol,"♛");
             }
@@ -131,7 +153,10 @@ public class ChessGame extends JFrame {
         }
 
         // move piece for game logic
-        board.movePiece(sourceRow, sourceCol, destRow, destCol,false);
+        chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol,false);
+
+        // for debug
+        // System.out.println(chessBoard.toString());
     }
 
     /**
@@ -144,7 +169,7 @@ public class ChessGame extends JFrame {
         // Case 1: PLayer wants to move to a highlighted square. (move previously selected piece)
         if (square.getBackground().equals(new Color(255, 110, 75)) && selectedPiece != null) {
             if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isMoveLegal(chessBoard,row,col)) {
-                movePiece(chessBoard,selectedPiece,selectedSquare,squares[row][col]);
+                movePiece(selectedPiece,selectedSquare,squares[row][col]);
             }
             colorToMove = !colorToMove;
             resetHighlights();
@@ -201,6 +226,9 @@ public class ChessGame extends JFrame {
             isBlack = !isBlack;
         }
     }
+    private boolean isGameOver() {
+        return chessBoard.isGameOver();
+    }
 
     /**
      * Initializes pieces on GUI board representation in the normal starting chess position.
@@ -237,5 +265,13 @@ public class ChessGame extends JFrame {
         Board board = new Board();
         Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", board);
         ChessGame chess = new ChessGame(board);
+
+        Timer timer = new Timer(100, e -> {
+            if (chess.isGameOver()) {
+                chess.showCheckmateDialog(chess.decideWinner());
+                ((Timer) e.getSource()).stop();
+            }
+        });
+        timer.start();
     }
 }
