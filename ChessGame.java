@@ -13,6 +13,7 @@ public class ChessGame extends JFrame {
     private final JPanel boardPanel;
     private final JPanel[][] squares = new JPanel[8][8]; // 2d array of GUI representation of the boards squares
     private final Board chessBoard; // game logic representation of ches game
+    private final JTextArea log;
 
     // piece/square selection fields
     private JLabel selectedPiece = null;
@@ -26,7 +27,7 @@ public class ChessGame extends JFrame {
         chessBoard = board;
 
         // build frame
-        setSize(600,600);
+        setSize(800,600);
         setTitle("Chess");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -41,25 +42,44 @@ public class ChessGame extends JFrame {
         container.add(boardPanel, BorderLayout.CENTER);
 
         // build row coords (1 - 8)
-        JPanel leftRowCoords = new JPanel(new GridLayout(8,1));
+        JPanel rowCoords = new JPanel(new GridLayout(8,1));
         for (int i = 8; i > 0; i--) {
             JLabel label = new JLabel(String.valueOf(i),SwingConstants.CENTER);
-            leftRowCoords.add(label);
+            rowCoords.add(label);
         }
+        rowCoords.setPreferredSize(new Dimension(15,600));
 
         // build col coords (a - h)
-        JPanel upperColCoords = new JPanel(new GridLayout(1,8));
+        JPanel colCoords = new JPanel(new GridLayout(1,8));
         for (char c = 'a'; c <= 'h'; c++) {
             JLabel label = new JLabel(String.valueOf(c),SwingConstants.CENTER);
-            upperColCoords.add(label);
+            colCoords.add(label);
         }
+        colCoords.setPreferredSize(new Dimension(600,15));
+
+        // build move log
+        log = new JTextArea();
+        log.setEditable(false);
+        log.setLineWrap(true);
+        log.setWrapStyleWord(true);
+
+        JScrollPane scrollPane = new JScrollPane(log);
+        scrollPane.setPreferredSize(new Dimension(125, 100));
+
+        // build title for move log
+        JLabel title = new JLabel("Move Log",SwingConstants.CENTER);
+        JPanel logPanel = new JPanel(new BorderLayout());
+        title.setFont(new Font("Arial",Font.BOLD, 16));
+        logPanel.add(title,BorderLayout.NORTH);
+        logPanel.add(scrollPane,BorderLayout.CENTER);
 
         // add rows
-        container.add(leftRowCoords,BorderLayout.WEST);
+        container.add(rowCoords,BorderLayout.WEST);
         // add cols
-        container.add(upperColCoords,BorderLayout.NORTH);
+        container.add(colCoords,BorderLayout.NORTH);
 
-        add(container);
+        add(container,BorderLayout.CENTER);
+        add(logPanel,BorderLayout.WEST);
         setVisible(true);
     }
 
@@ -166,24 +186,73 @@ public class ChessGame extends JFrame {
                 destination.add(piece);
                 destination.revalidate();
             }
-            destination.revalidate();
-            destination.repaint();
         }
         else {
             destination.add(piece);
-            destination.revalidate();
-            destination.repaint();
         }
+        destination.revalidate();
+        destination.repaint();
 
         // move piece for game logic
         chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol,false);
+        // add move to game log
+        logMove(sourceCol,sourceRow,destCol,destRow);
 
         // for debug
         // System.out.println(chessBoard.toString());
     }
 
     /**
-     * Shows all legal moves for a clicked piece
+     * Converts a move to proper chess notation and logs it into the game log.
+     * @param sourceCol Starting Col.
+     * @param sourceRow Starting Row.
+     * @param destCol Ending Col.
+     * @param destRow Ending Row.
+     */
+    private void logMove(int sourceCol,int sourceRow,int destCol, int destRow) {
+        log.append((colorToMove ? "White:" : "Black:") + " " + mapCoords(sourceCol,true) + mapCoords(sourceRow,false) + "," +
+                mapCoords(destCol,true) + mapCoords(destRow,false) + '\n');
+    }
+
+    /**
+     * Maps a given integer column/row value to the appropriate value. (Used for move logging)
+     * @param val Passed in column/row value that is being mapped.
+     * @param col Boolean for if the input is a col or a row. (T for col, F for row)
+     * @return returns the mapped column/row coordinate.
+     */
+    public String mapCoords(int val,boolean col) {
+        String s;
+        if (col) { // passed in val corresponds to column
+             s = switch (val) {
+                case 0 -> "a";
+                case 1 -> "b";
+                case 2 -> "c";
+                case 3 -> "d";
+                case 4 -> "e";
+                case 5 -> "f";
+                case 6 -> "g";
+                case 7 -> "h";
+                default -> "invalid";
+            };
+        }
+        else { // passed in val corresponds to row
+             s = switch (val) {
+                case 0 -> "8";
+                case 1 -> "7";
+                case 2 -> "6";
+                case 3 -> "5";
+                case 4 -> "4";
+                case 5 -> "3";
+                case 6 -> "2";
+                case 7 -> "1";
+                default -> "invalid";
+            };
+        }
+        return s;
+    }
+
+    /**
+     * Shows all legal moves for a clicked piece or moves an already clicked piece.
      * @param square square the clicked piece is on.
      * @param row
      * @param col
