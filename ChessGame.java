@@ -31,12 +31,35 @@ public class ChessGame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        // build container
+        JPanel container = new JPanel(new BorderLayout());
+
         // build chess board
         boardPanel = new JPanel(new GridLayout(8,8));
         initializeBoard();
         initializePieces();
-        add(boardPanel, BorderLayout.CENTER);
+        container.add(boardPanel, BorderLayout.CENTER);
 
+        // build row coords (1 - 8)
+        JPanel leftRowCoords = new JPanel(new GridLayout(8,1));
+        for (int i = 8; i > 0; i--) {
+            JLabel label = new JLabel(String.valueOf(i),SwingConstants.CENTER);
+            leftRowCoords.add(label);
+        }
+
+        // build col coords (a - h)
+        JPanel upperColCoords = new JPanel(new GridLayout(1,8));
+        for (char c = 'a'; c <= 'h'; c++) {
+            JLabel label = new JLabel(String.valueOf(c),SwingConstants.CENTER);
+            upperColCoords.add(label);
+        }
+
+        // add rows
+        container.add(leftRowCoords,BorderLayout.WEST);
+        // add cols
+        container.add(upperColCoords,BorderLayout.NORTH);
+
+        add(container);
         setVisible(true);
     }
 
@@ -82,7 +105,7 @@ public class ChessGame extends JFrame {
 
     public void showCheckmateDialog(boolean whiteWon) {
         String message;
-        Icon image;
+        // Icon image;
         if (whiteWon) {
             message = "Checkmate, White Wins!";
             //image = new ImageIcon("/Users/kaydenvandecaveye/PersonalProjects/SWE/Chess/whiteking.png");

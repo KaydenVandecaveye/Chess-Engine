@@ -325,10 +325,10 @@ public class Board {
         if (board[startRow][startCol] != null) {
                 Piece piece = board[startRow][startCol];
                 if (piece instanceof Pawn && piece.isBlack && endRow == 7 && !sim) {
-                    piece = ((Pawn) piece).promotePawn(this,endRow,endCol,true);
+                    piece = ((Pawn) piece).promotePawn(this,startRow,startCol,true);
                 }
                 else if (piece instanceof Pawn && !piece.isBlack && endRow == 0 && !sim) {
-                    piece = ((Pawn) piece).promotePawn(this,endRow,endCol,false);
+                    piece = ((Pawn) piece).promotePawn(this,startRow,startCol,false);
                 }
                 board[endRow][endCol] = piece;
                 board[startRow][startCol] = null;
