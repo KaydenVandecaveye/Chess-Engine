@@ -171,6 +171,7 @@ public class ChessGame extends JFrame {
         int sourceCol = getPosition(source)[1];
         int destRow = getPosition(destination)[0];
         int destCol = getPosition(destination)[1];
+
         // initialize chess piece (for underlying board representation)
         Piece chessPiece = chessBoard.getPiece(sourceRow,sourceCol);
 
@@ -183,11 +184,10 @@ public class ChessGame extends JFrame {
 
         // pawn promotion check
         if (chessPiece instanceof Pawn) {
-            Piece pawn = chessBoard.getPiece(sourceRow,sourceCol);
-            if (pawn.isBlack && destRow == 7) {
+            if (chessPiece.isBlack && destRow == 7) {
                 addPiece(destRow,destCol,"♛");
             }
-            else if (!pawn.isBlack && destRow == 0) {
+            else if (!chessPiece.isBlack && destRow == 0) {
                 addPiece(destRow,destCol,"♕");
             }
             else {
@@ -195,9 +195,30 @@ public class ChessGame extends JFrame {
                 destination.revalidate();
             }
         }
+
+        // castling check
+        else if (chessPiece instanceof King && Math.abs(sourceCol - destCol) == 2) {
+            // King side castle
+            if (destCol == sourceCol + 2) {
+                // move rook to king side castle pos
+                JLabel rook = (JLabel) squares[sourceRow][sourceCol + 3].getComponents()[0];
+                movePiece(rook, squares[sourceRow][sourceCol + 3], squares[sourceRow][destCol - 1]);
+            }
+            // Queen side castle
+            else if (destCol == sourceCol - 2) {
+                // move rook to queen side castle pos
+                JLabel rook = (JLabel) squares[sourceRow][sourceCol - 4].getComponents()[0];
+                movePiece(rook, squares[sourceRow][sourceCol - 4], squares[sourceRow][destCol + 1]);
+            }
+            destination.add(piece);
+        }
+
+        // regular move
         else {
             destination.add(piece);
         }
+
+
         destination.revalidate();
         destination.repaint();
 
