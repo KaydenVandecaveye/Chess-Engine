@@ -325,13 +325,27 @@ public class Board {
         if (board[startRow][startCol] != null) {
                 Piece piece = board[startRow][startCol];
 
+                // update necessary piece fields
+                if (piece instanceof King) {
+                    ((King) piece).setHasMoved(true);
+                    if (piece.isBlack) {
+                        setBlackKingPos(endRow, endCol);
+                    } else {
+                        setWhiteKingPos(endRow, endCol);
+                    }
+                }
+                if (piece instanceof Rook) {
+                    ((Rook) piece).setHasMoved(true);
+                }
+
                 // if king is castling
                 if (piece instanceof King && Math.abs(endCol - startCol) == 2) {
                     ((King) piece).performCastling(this,endRow,endCol);
 
                     if (piece.isBlack) {
                         setBlackKingPos(endRow, endCol);
-                    } else {
+                    }
+                    else {
                         setWhiteKingPos(endRow, endCol);
                     }
                 }
@@ -357,16 +371,11 @@ public class Board {
                     board[endRow][endCol] = piece;
                     board[startRow][startCol] = null;
                     piece.setPosition(endRow, endCol);
-                    if (piece instanceof King) {
-                        if (piece.isBlack) {
-                            setBlackKingPos(endRow, endCol);
-                        } else {
-                            setWhiteKingPos(endRow, endCol);
-                        }
+
                     }
                 }
         }
-    }
+
 
     /**
      * legalMoveOnBoard() helper function.

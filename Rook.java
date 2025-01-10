@@ -1,10 +1,14 @@
 package CSCI1933P2;
 
 public class Rook extends Piece {
-
     private boolean hasMoved = false;
+
     public boolean hasMoved() {
         return hasMoved;
+    }
+
+    public void setHasMoved(boolean moved) {
+        hasMoved = moved;
     }
 
     public Rook(int row, int col, boolean isBlack) {
@@ -29,11 +33,4 @@ public class Rook extends Piece {
         return false;
     }
 
-
-    public void moveTo(Board board, int newRow, int newCol){
-        // Update position
-        this.row = newRow;
-        this.col = newCol;
-        this.hasMoved = true;
-    }
 }

@@ -1,7 +1,6 @@
 package CSCI1933P2;
 
 public class King extends Piece {
-
     private boolean hasMoved = false;
 
     public King(int row, int col, boolean isBlack) {
@@ -17,6 +16,10 @@ public class King extends Piece {
         }
     }
 
+    public void setHasMoved(boolean moved) {
+        hasMoved = moved;
+    }
+
     @Override
     public boolean canMoveTo(Board board, int endRow, int endCol) {
         if (board.verifySourceAndDestination(this.row, this.col, endRow, endCol, isBlack)) {
@@ -28,27 +31,25 @@ public class King extends Piece {
 
     // New method to check and perform castling
     public boolean canCastle(Board board, int endRow, int endCol) {
-        if (hasMoved) {
-            return false;  // King has already moved, cannot castle
+        if (hasMoved || this.row != endRow) {
+            return false;
         }
 
-        // Check if castling is being attempted on the same row
-        if (this.row != endRow) {
-            return false;  // Castling must happen on the same row
-        }
-
-        // Verify if destination column is for castling (either kingside or queenside)
-        if (endCol == this.col + 2) {  // Kingside
+        // Verify if destination column is for castling (either king side or queen side)
+        if (endCol == this.col + 2) {  // King side
             // Verify that the king can move two squares to the right
             return canCastleKingside(board);
-        } else if (endCol == this.col - 2) {  // Queenside
+        }
+
+        else if (endCol == this.col - 2) {  // Queen side
             // Verify that the king can move two squares to the left
             return canCastleQueenside(board);
         }
+
         return false;
     }
 
-    // Check if kingside castling is possible
+    // Check if king side castling is possible
     private boolean canCastleKingside(Board board) {
         // Check if the square between the king and rook is empty
         if (board.getPiece(row, col + 1) != null || board.getPiece(row, col + 2) != null) {
@@ -77,12 +78,13 @@ public class King extends Piece {
         }
 
         // Check if the kings path is not under attack
-        if (board.isSquareUnderAttack(row, col - 1, isBlack) || board.isSquareUnderAttack(row, col - 2, isBlack)) {
+        if (board.isSquareUnderAttack(row, col - 1, isBlack) || board.isSquareUnderAttack(row, col - 2, isBlack) || board.isSquareUnderAttack(row, col - 3, isBlack)) {
             return false;
         }
 
         // Check if the rook has not moved
         Rook rook = (Rook) board.getPiece(row, col - 4);  // Assuming rook is on the same row and to the left
+
         if (rook == null || rook.hasMoved()) {
             return false;  // Rook has moved or is missing
         }
