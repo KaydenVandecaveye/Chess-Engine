@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  * Class responsible for the GUI of the chess board & GUI game functionality.
@@ -13,7 +14,7 @@ public class ChessGame extends JFrame {
     private final JPanel boardPanel;
     private final JPanel[][] squares = new JPanel[8][8]; // 2d array of GUI representation of the boards squares
     private final Board chessBoard; // game logic representation of ches game
-    private final JTextArea log;
+    DefaultTableModel moveLogModel;
 
     // piece/square selection fields
     private JLabel selectedPiece = null;
@@ -58,12 +59,17 @@ public class ChessGame extends JFrame {
         colCoords.setPreferredSize(new Dimension(600,15));
 
         // build move log
-        log = new JTextArea();
-        log.setEditable(false);
-        log.setLineWrap(true);
-        log.setWrapStyleWord(true);
+        moveLogModel = new DefaultTableModel(new String[]{"White", "Black"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                return false;
+            }
+        };
+        JTable moveLog = new JTable(moveLogModel);
+        moveLog.setFillsViewportHeight(true);
+        moveLog.setCellSelectionEnabled(false);
 
-        JScrollPane scrollPane = new JScrollPane(log);
+        JScrollPane scrollPane = new JScrollPane(moveLog);
         scrollPane.setPreferredSize(new Dimension(125, 100));
 
         // build title for move log
@@ -165,6 +171,8 @@ public class ChessGame extends JFrame {
         int sourceCol = getPosition(source)[1];
         int destRow = getPosition(destination)[0];
         int destCol = getPosition(destination)[1];
+        // initialize chess piece (for underlying board representation)
+        Piece chessPiece = chessBoard.getPiece(sourceRow,sourceCol);
 
         source.remove(piece);
         source.repaint();
@@ -174,7 +182,7 @@ public class ChessGame extends JFrame {
         }
 
         // pawn promotion check
-        if (chessBoard.getPiece(sourceRow,sourceCol) instanceof Pawn) {
+        if (chessPiece instanceof Pawn) {
             Piece pawn = chessBoard.getPiece(sourceRow,sourceCol);
             if (pawn.isBlack && destRow == 7) {
                 addPiece(destRow,destCol,"♛");
@@ -196,22 +204,23 @@ public class ChessGame extends JFrame {
         // move piece for game logic
         chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol,false);
         // add move to game log
-        logMove(sourceCol,sourceRow,destCol,destRow);
+        logMove(chessPiece,destCol,destRow);
 
         // for debug
-        // System.out.println(chessBoard.toString());
+        System.out.println(chessBoard.toString());
     }
-
-    /**
-     * Converts a move to proper chess notation and logs it into the game log.
-     * @param sourceCol Starting Col.
-     * @param sourceRow Starting Row.
-     * @param destCol Ending Col.
-     * @param destRow Ending Row.
-     */
-    private void logMove(int sourceCol,int sourceRow,int destCol, int destRow) {
-        log.append((colorToMove ? "White:" : "Black:") + " " + mapCoords(sourceCol,true) + mapCoords(sourceRow,false) + "," +
-                mapCoords(destCol,true) + mapCoords(destRow,false) + '\n');
+    private String mapPiece(Piece chessPiece) {
+        String s;
+        s = switch (chessPiece) {
+            case King king -> "K";
+            case Pawn pawn -> "";
+            case Bishop bishop -> "B";
+            case Knight knight -> "N";
+            case Rook rook -> "R";
+            case Queen queen -> "Q";
+            default -> throw new IllegalStateException("Unexpected value: " + chessPiece);
+        };
+        return s;
     }
 
     /**
@@ -249,6 +258,23 @@ public class ChessGame extends JFrame {
             };
         }
         return s;
+    }
+
+    /**
+     * Converts a move to proper chess notation and logs it into the game log.
+     * @param piece Piece being moved.
+     * @param destCol Ending Col.
+     * @param destRow Ending Row.
+     */
+    private void logMove(Piece piece,int destCol, int destRow) {
+        String output = (mapPiece(piece) + mapCoords(destCol,true) + mapCoords(destRow,false) + '\n');
+        if (colorToMove) {
+            moveLogModel.addRow(new Object[] {output, ""});
+        }
+        else {
+            int currentRow = moveLogModel.getRowCount() - 1;
+            moveLogModel.setValueAt(output, currentRow, 1);
+        }
     }
 
     /**

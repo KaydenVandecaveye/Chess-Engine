@@ -1,6 +1,5 @@
 package CSCI1933P2;
 /**
- * For CSCI 1933 Project 2
  * The Fen class was designed to load an object of type
  * Board with any chess board state given a proper
  * Forsyth-Edwards Notation code. Simply pass a String

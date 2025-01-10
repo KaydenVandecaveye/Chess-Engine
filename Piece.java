@@ -32,10 +32,16 @@ public abstract class Piece {
      * @return True if the move to the destination square is legal, false otherwise.
      */
     public boolean isMoveLegal(Board board, int endRow, int endCol) {
+
+        if (this instanceof King && ((King) this).canCastle(board,endRow, endCol)) {
+            return true;
+        }
+
         board.checkOnBoard();
         boolean sim = true;
         int startRow = row;
         int startCol = col;
+
         Piece capturedPiece = board.board[endRow][endCol]; // backup captured piece
         if (!canMoveTo(board,endRow,endCol)) {
             return false;

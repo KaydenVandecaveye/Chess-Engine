@@ -324,21 +324,45 @@ public class Board {
     public void movePiece(int startRow, int startCol, int endRow, int endCol, boolean sim) {
         if (board[startRow][startCol] != null) {
                 Piece piece = board[startRow][startCol];
+
+                // if king is castling
+                if (piece instanceof King && Math.abs(endCol - startCol) == 2) {
+                    ((King) piece).performCastling(this,endRow,endCol);
+
+                    if (piece.isBlack) {
+                        setBlackKingPos(endRow, endCol);
+                    } else {
+                        setWhiteKingPos(endRow, endCol);
+                    }
+                }
+
+                // pawn promotion
                 if (piece instanceof Pawn && piece.isBlack && endRow == 7 && !sim) {
                     piece = ((Pawn) piece).promotePawn(this,startRow,startCol,true);
+
+                    board[endRow][endCol] = piece;
+                    board[startRow][startCol] = null;
+                    piece.setPosition(endRow, endCol);
                 }
                 else if (piece instanceof Pawn && !piece.isBlack && endRow == 0 && !sim) {
                     piece = ((Pawn) piece).promotePawn(this,startRow,startCol,false);
+
+                    board[endRow][endCol] = piece;
+                    board[startRow][startCol] = null;
+                    piece.setPosition(endRow, endCol);
                 }
-                board[endRow][endCol] = piece;
-                board[startRow][startCol] = null;
-                piece.setPosition(endRow, endCol);
-                if (piece instanceof King) {
-                    if (piece.isBlack) {
-                        setBlackKingPos(endRow,endCol);
-                    }
-                    else {
-                        setWhiteKingPos(endRow,endCol);
+
+                // regular move block
+                else {
+                    board[endRow][endCol] = piece;
+                    board[startRow][startCol] = null;
+                    piece.setPosition(endRow, endCol);
+                    if (piece instanceof King) {
+                        if (piece.isBlack) {
+                            setBlackKingPos(endRow, endCol);
+                        } else {
+                            setWhiteKingPos(endRow, endCol);
+                        }
                     }
                 }
         }
@@ -441,5 +465,23 @@ public class Board {
             out.append("\n");
         }
         return out.toString();
+    }
+
+    // checks if the current square can be attacked by an opposing piece
+    public boolean isSquareUnderAttack(int row, int col, boolean isBlack) {
+        // Check for threats from all pieces (both black and white)
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (getPiece(i, j) != null) {
+                    Piece piece = getPiece(i, j); // get the piece at the current square
+                    if (piece.getIsBlack() != isBlack) {  // Opposing color
+                        if (piece.canMoveTo(this, row, col)) {
+                            return true;  // The square is under attack
+                        }
+                    }
+                }
+            }
+        }
+        return false;  // The square is not under attack
     }
 }
