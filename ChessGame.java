@@ -165,12 +165,14 @@ public class ChessGame extends JFrame {
      * @param source GUI square piece begins on.
      * @param destination GUI square piece ends on.
      */
-    private void movePiece(JLabel piece, JPanel source, JPanel destination) {
+    private void movePiece(JLabel piece, JPanel source, JPanel destination, boolean isCastle) {
         // initialize coords
         int sourceRow = getPosition(source)[0];
         int sourceCol = getPosition(source)[1];
         int destRow = getPosition(destination)[0];
         int destCol = getPosition(destination)[1];
+
+        boolean hasLogged = false;
 
         // initialize chess piece (for underlying board representation)
         Piece chessPiece = chessBoard.getPiece(sourceRow,sourceCol);
@@ -198,19 +200,24 @@ public class ChessGame extends JFrame {
 
         // castling check
         else if (chessPiece instanceof King && Math.abs(sourceCol - destCol) == 2) {
+
             // King side castle
             if (destCol == sourceCol + 2) {
                 // move rook to king side castle pos
                 JLabel rook = (JLabel) squares[sourceRow][sourceCol + 3].getComponents()[0];
-                movePiece(rook, squares[sourceRow][sourceCol + 3], squares[sourceRow][destCol - 1]);
+                movePiece(rook, squares[sourceRow][sourceCol + 3], squares[sourceRow][destCol - 1], true);
+                logCastle(true);
             }
+
             // Queen side castle
             else if (destCol == sourceCol - 2) {
                 // move rook to queen side castle pos
                 JLabel rook = (JLabel) squares[sourceRow][sourceCol - 4].getComponents()[0];
-                movePiece(rook, squares[sourceRow][sourceCol - 4], squares[sourceRow][destCol + 1]);
+                movePiece(rook, squares[sourceRow][sourceCol - 4], squares[sourceRow][destCol + 1], true);
+                logCastle(false);
             }
             destination.add(piece);
+            hasLogged = true;
         }
 
         // regular move
@@ -218,17 +225,19 @@ public class ChessGame extends JFrame {
             destination.add(piece);
         }
 
-
         destination.revalidate();
         destination.repaint();
 
         // move piece for game logic
         chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol,false);
-        // add move to game log
-        logMove(chessPiece,destCol,destRow);
+
+        if (!isCastle && !hasLogged) {
+            // add move to game log
+            logMove(chessPiece, destCol, destRow);
+        }
 
         // for debug
-        System.out.println(chessBoard.toString());
+        // System.out.println(chessBoard.toString());
     }
     private String mapPiece(Piece chessPiece) {
         String s;
@@ -298,6 +307,27 @@ public class ChessGame extends JFrame {
         }
     }
 
+    private void logCastle(boolean kingSide) {
+        String output = "";
+
+        //determine king side or queen side castle for proper notation
+        if (kingSide) {
+            output += "0-0";
+        }
+        else {
+            output += "0-0-0";
+        }
+
+        // log the given castle
+        if (colorToMove) {
+            moveLogModel.addRow(new Object[] {output, ""});
+        }
+        else {
+            int currentRow = moveLogModel.getRowCount() - 1;
+            moveLogModel.setValueAt(output, currentRow, 1);
+        }
+    }
+
     /**
      * Shows all legal moves for a clicked piece or moves an already clicked piece.
      * @param square square the clicked piece is on.
@@ -308,7 +338,7 @@ public class ChessGame extends JFrame {
         // Case 1: PLayer wants to move to a highlighted square. (move previously selected piece)
         if (square.getBackground().equals(new Color(255, 110, 75)) && selectedPiece != null) {
             if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isMoveLegal(chessBoard,row,col)) {
-                movePiece(selectedPiece,selectedSquare,squares[row][col]);
+                movePiece(selectedPiece,selectedSquare,squares[row][col], false);
             }
             colorToMove = !colorToMove;
             resetHighlights();
