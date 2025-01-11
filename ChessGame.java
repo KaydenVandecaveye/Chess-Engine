@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -166,22 +167,37 @@ public class ChessGame extends JFrame {
      * @param destination GUI square piece ends on.
      */
     private void movePiece(JLabel piece, JPanel source, JPanel destination, boolean isCastle) {
-        // initialize coords
+        System.out.println(chessBoard.getPiece(7,0) instanceof Rook);
         int sourceRow = getPosition(source)[0];
         int sourceCol = getPosition(source)[1];
         int destRow = getPosition(destination)[0];
         int destCol = getPosition(destination)[1];
 
+        // booleans for proper PGN notation logging
         boolean hasLogged = false;
+        boolean isCapture = false;
+        boolean isCheck = false;
+        boolean isCheckMate = false;
 
         // initialize chess piece (for underlying board representation)
         Piece chessPiece = chessBoard.getPiece(sourceRow,sourceCol);
+
+
+//        // detect checkmate
+//        if (isGameOver()) {
+//            isCheckMate = true;
+//        }
+//        // detect check
+//        if ((chessBoard.whiteInCheck || chessBoard.blackInCheck) && !isCheckMate) {
+//            isCheck = true;
+//        }
 
         source.remove(piece);
         source.repaint();
 
         if (destination.getComponentCount() > 0) { // move to occupied square
             destination.remove(0);
+            isCapture = true;
         }
 
         // pawn promotion check
@@ -206,7 +222,7 @@ public class ChessGame extends JFrame {
                 // move rook to king side castle pos
                 JLabel rook = (JLabel) squares[sourceRow][sourceCol + 3].getComponents()[0];
                 movePiece(rook, squares[sourceRow][sourceCol + 3], squares[sourceRow][destCol - 1], true);
-                logCastle(true);
+                logCastle(true, isCheckMate, isCheck);
             }
 
             // Queen side castle
@@ -214,7 +230,7 @@ public class ChessGame extends JFrame {
                 // move rook to queen side castle pos
                 JLabel rook = (JLabel) squares[sourceRow][sourceCol - 4].getComponents()[0];
                 movePiece(rook, squares[sourceRow][sourceCol - 4], squares[sourceRow][destCol + 1], true);
-                logCastle(false);
+                logCastle(false, isCheckMate, isCheck);
             }
             destination.add(piece);
             hasLogged = true;
@@ -225,20 +241,29 @@ public class ChessGame extends JFrame {
             destination.add(piece);
         }
 
+        // move piece for game logic
+        chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol,false);
+        chessBoard.checkOnBoard();
+
         destination.revalidate();
         destination.repaint();
 
-        // move piece for game logic
-        chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol,false);
 
         if (!isCastle && !hasLogged) {
             // add move to game log
-            logMove(chessPiece, destCol, destRow);
+            logMove(chessPiece,sourceCol, destCol, destRow, isCapture, isCheckMate, isCheck);
         }
 
+
         // for debug
-        // System.out.println(chessBoard.toString());
+        System.out.println(chessBoard.toString());
+        System.out.println("White king Pos:" + "(" + chessBoard.getWhiteKingPos()[0] + "," + chessBoard.getWhiteKingPos()[1] + ")");
+        System.out.println("Black king Pos:" + "(" + chessBoard.getBlackKingPos()[0] + "," + chessBoard.getBlackKingPos()[1] + ")");
+         if (chessBoard.getPiece(7,3) != null) {
+             System.out.println(Arrays.stream(chessBoard.getPiece(7,3).generateLegalMoves(chessBoard)).toList());
+         }
     }
+
     private String mapPiece(Piece chessPiece) {
         String s;
         s = switch (chessPiece) {
@@ -295,9 +320,18 @@ public class ChessGame extends JFrame {
      * @param piece Piece being moved.
      * @param destCol Ending Col.
      * @param destRow Ending Row.
+     * @param sourceCol Starting Col.
+     * @param isCheckmate If move is a checkmate.
+     * @param isCapture If move captures another piece.
      */
-    private void logMove(Piece piece,int destCol, int destRow) {
-        String output = (mapPiece(piece) + mapCoords(destCol,true) + mapCoords(destRow,false) + '\n');
+    private void logMove(Piece piece, int sourceCol, int destCol, int destRow, boolean isCapture, boolean isCheckmate, boolean isCheck) {
+        String output = (mapPiece(piece) + (isCapture ? "x" : "") + mapCoords(destCol,true) + mapCoords(destRow,false) + (isCheckmate ? "#" : "") + (isCheck ? "+" : "") + '\n');
+
+        // pawn capture has a unique PGN format which is handled here.
+        if (isCapture && mapPiece(piece).equals("")) {
+            output = (mapCoords(sourceCol, true) + "x" + mapCoords(destCol,true) + mapCoords(destRow,false) + '\n');
+        }
+
         if (colorToMove) {
             moveLogModel.addRow(new Object[] {output, ""});
         }
@@ -307,7 +341,11 @@ public class ChessGame extends JFrame {
         }
     }
 
-    private void logCastle(boolean kingSide) {
+    /**
+     * Logs a castle to the move log.
+     * @param kingSide Used to determine if a castle is kingSide or queenSide because they have different PGN notation.
+     */
+    private void logCastle(boolean kingSide, boolean isCheckmate, boolean isCheck) {
         String output = "";
 
         //determine king side or queen side castle for proper notation
@@ -317,6 +355,8 @@ public class ChessGame extends JFrame {
         else {
             output += "0-0-0";
         }
+
+        output = output + (isCheckmate ? "#" : "") + (isCheck ? "+" : "");
 
         // log the given castle
         if (colorToMove) {
@@ -356,7 +396,7 @@ public class ChessGame extends JFrame {
                 selectedPieceCol = col;
                 selectedSquare = squares[row][col];
 
-                if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isBlack != colorToMove) {
+                if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol) != null && chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isBlack != colorToMove) {
                     // generate legal moves and highlight
                     int[][] legalMoves = chessBoard.board[row][col].generateLegalMoves(chessBoard);
                     highlightMoves(legalMoves);
@@ -396,7 +436,11 @@ public class ChessGame extends JFrame {
         }
     }
     private boolean isGameOver() {
-        return chessBoard.isGameOver();
+        if (chessBoard.isGameOver()) {
+
+            return true;
+        }
+        return false;
     }
 
     /**

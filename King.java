@@ -62,12 +62,12 @@ public class King extends Piece {
         }
 
         // Check if the rook has not moved
-        Rook rook = (Rook) board.getPiece(row, col + 3);  // Assuming rook is on the same row and to the right
-        if (rook == null || rook.hasMoved()) {
+        Piece rook =  board.getPiece(row, col + 3);  // Assuming rook is on the same row and to the right
+        if (!(rook instanceof Rook)) {
             return false;  // Rook has moved or is missing
         }
 
-        return true;  // All conditions for kingside castling are met
+        return !((Rook) rook).hasMoved();   // All conditions for kingside castling are met
     }
 
     // Check if queenside castling is possible
@@ -83,13 +83,12 @@ public class King extends Piece {
         }
 
         // Check if the rook has not moved
-        Rook rook = (Rook) board.getPiece(row, col - 4);  // Assuming rook is on the same row and to the left
-
-        if (rook == null || rook.hasMoved()) {
+        Piece rook =  board.getPiece(row, col - 4);  // Assuming rook is on the same row and to the left
+        if (!(rook instanceof Rook)) {
             return false;  // Rook has moved or is missing
         }
 
-        return true;  // All conditions for queenside castling are met
+        return !((Rook) rook).hasMoved();   // All conditions for queenside castling are met
     }
 
     // Method to perform the castling move

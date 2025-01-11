@@ -325,16 +325,7 @@ public class Board {
         if (board[startRow][startCol] != null) {
                 Piece piece = board[startRow][startCol];
 
-                // update necessary piece fields
-                if (piece instanceof King) {
-                    ((King) piece).setHasMoved(true);
-                    if (piece.isBlack) {
-                        setBlackKingPos(endRow, endCol);
-                    } else {
-                        setWhiteKingPos(endRow, endCol);
-                    }
-                }
-                if (piece instanceof Rook) {
+                if (piece instanceof Rook && !sim) {
                     ((Rook) piece).setHasMoved(true);
                 }
 
