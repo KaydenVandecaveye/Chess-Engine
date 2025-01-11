@@ -3,7 +3,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -256,12 +255,7 @@ public class ChessGame extends JFrame {
 
 
         // for debug
-        System.out.println(chessBoard.toString());
-        System.out.println("White king Pos:" + "(" + chessBoard.getWhiteKingPos()[0] + "," + chessBoard.getWhiteKingPos()[1] + ")");
-        System.out.println("Black king Pos:" + "(" + chessBoard.getBlackKingPos()[0] + "," + chessBoard.getBlackKingPos()[1] + ")");
-         if (chessBoard.getPiece(7,3) != null) {
-             System.out.println(Arrays.stream(chessBoard.getPiece(7,3).generateLegalMoves(chessBoard)).toList());
-         }
+        // System.out.println(chessBoard.toString());
     }
 
     private String mapPiece(Piece chessPiece) {

@@ -330,14 +330,16 @@ public class Board {
                 }
 
                 // if king is castling
-                if (piece instanceof King && Math.abs(endCol - startCol) == 2) {
-                    ((King) piece).performCastling(this,endRow,endCol);
 
+                if (piece instanceof King) {
                     if (piece.isBlack) {
-                        setBlackKingPos(endRow, endCol);
+                        setBlackKingPos(endRow,endCol);
                     }
                     else {
-                        setWhiteKingPos(endRow, endCol);
+                        setWhiteKingPos(endRow,endCol);
+                    }
+                    if (Math.abs(endCol - startCol) == 2) {
+                        ((King) piece).performCastling(this, endRow, endCol);
                     }
                 }
 
