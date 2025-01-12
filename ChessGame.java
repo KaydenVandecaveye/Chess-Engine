@@ -1,10 +1,16 @@
 package CSCI1933P2;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * Class responsible for the GUI of the chess board & GUI game functionality.
@@ -79,6 +85,47 @@ public class ChessGame extends JFrame {
         logPanel.add(title,BorderLayout.NORTH);
         logPanel.add(scrollPane,BorderLayout.CENTER);
 
+        // build button & button panel
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+        JButton exportButton = new JButton("Export Move Log to PGN");
+        JButton resetGameButton = new JButton("Reset Game");
+
+        exportButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                writeToPGN(returnMoveLog());
+            }
+        });
+
+        resetGameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // clear internal board state & load starting position
+                chessBoard.clear();
+                Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", chessBoard);
+                colorToMove = true;
+                chessBoard.whiteInCheck = false;
+                chessBoard.blackInCheck = false;
+
+                // clear GUI board state & load starting position
+                clearBoard();
+                initializePieces();
+
+                // ensure board updated
+                repaint();
+                revalidate();
+
+                // clear move log
+                clearMoveLog();
+            }
+        });
+
+        buttonPanel.add(exportButton, BorderLayout.NORTH);
+        buttonPanel.add(resetGameButton, BorderLayout.SOUTH);
+        logPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        logPanel.setPreferredSize(new Dimension(200, 600));
+
         // add rows
         container.add(rowCoords,BorderLayout.WEST);
         // add cols
@@ -119,6 +166,18 @@ public class ChessGame extends JFrame {
             }
             isBlack = !isBlack;
         }
+    }
+
+    private void clearBoard() {
+        for (int i = 0; i < squares.length; i++) {
+            for (int j = 0; j < squares[0].length; j++) {
+                if (squares[i][j].getComponentCount() > 0) {
+                    squares[i][j].removeAll();
+                }
+            }
+        }
+        revalidate();
+        repaint();
     }
 
     /**
@@ -166,7 +225,6 @@ public class ChessGame extends JFrame {
      * @param destination GUI square piece ends on.
      */
     private void movePiece(JLabel piece, JPanel source, JPanel destination, boolean isCastle) {
-        System.out.println(chessBoard.getPiece(7,0) instanceof Rook);
         int sourceRow = getPosition(source)[0];
         int sourceCol = getPosition(source)[1];
         int destRow = getPosition(destination)[0];
@@ -175,21 +233,10 @@ public class ChessGame extends JFrame {
         // booleans for proper PGN notation logging
         boolean hasLogged = false;
         boolean isCapture = false;
-        boolean isCheck = false;
-        boolean isCheckMate = false;
 
         // initialize chess piece (for underlying board representation)
         Piece chessPiece = chessBoard.getPiece(sourceRow,sourceCol);
 
-
-//        // detect checkmate
-//        if (isGameOver()) {
-//            isCheckMate = true;
-//        }
-//        // detect check
-//        if ((chessBoard.whiteInCheck || chessBoard.blackInCheck) && !isCheckMate) {
-//            isCheck = true;
-//        }
 
         source.remove(piece);
         source.repaint();
@@ -221,7 +268,7 @@ public class ChessGame extends JFrame {
                 // move rook to king side castle pos
                 JLabel rook = (JLabel) squares[sourceRow][sourceCol + 3].getComponents()[0];
                 movePiece(rook, squares[sourceRow][sourceCol + 3], squares[sourceRow][destCol - 1], true);
-                logCastle(true, isCheckMate, isCheck);
+                logCastle(true);
             }
 
             // Queen side castle
@@ -229,7 +276,7 @@ public class ChessGame extends JFrame {
                 // move rook to queen side castle pos
                 JLabel rook = (JLabel) squares[sourceRow][sourceCol - 4].getComponents()[0];
                 movePiece(rook, squares[sourceRow][sourceCol - 4], squares[sourceRow][destCol + 1], true);
-                logCastle(false, isCheckMate, isCheck);
+                logCastle(false);
             }
             destination.add(piece);
             hasLogged = true;
@@ -250,7 +297,7 @@ public class ChessGame extends JFrame {
 
         if (!isCastle && !hasLogged) {
             // add move to game log
-            logMove(chessPiece,sourceCol, destCol, destRow, isCapture, isCheckMate, isCheck);
+            logMove(chessPiece,sourceCol, destCol, destRow, isCapture);
         }
 
 
@@ -315,10 +362,13 @@ public class ChessGame extends JFrame {
      * @param destCol Ending Col.
      * @param destRow Ending Row.
      * @param sourceCol Starting Col.
-     * @param isCheckmate If move is a checkmate.
      * @param isCapture If move captures another piece.
      */
-    private void logMove(Piece piece, int sourceCol, int destCol, int destRow, boolean isCapture, boolean isCheckmate, boolean isCheck) {
+    private void logMove(Piece piece, int sourceCol, int destCol, int destRow, boolean isCapture) {
+        boolean isCheckmate = chessBoard.isGameOver();
+        boolean isCheck = (!isCheckmate) && (chessBoard.blackInCheck || chessBoard.whiteInCheck);
+
+
         String output = (mapPiece(piece) + (isCapture ? "x" : "") + mapCoords(destCol,true) + mapCoords(destRow,false) + (isCheckmate ? "#" : "") + (isCheck ? "+" : "") + '\n');
 
         // pawn capture has a unique PGN format which is handled here.
@@ -339,7 +389,9 @@ public class ChessGame extends JFrame {
      * Logs a castle to the move log.
      * @param kingSide Used to determine if a castle is kingSide or queenSide because they have different PGN notation.
      */
-    private void logCastle(boolean kingSide, boolean isCheckmate, boolean isCheck) {
+    private void logCastle(boolean kingSide) {
+        boolean isCheckmate = chessBoard.isGameOver();
+        boolean isCheck = (!isCheckmate) && chessBoard.blackInCheck || chessBoard.whiteInCheck;
         String output = "";
 
         //determine king side or queen side castle for proper notation
@@ -349,7 +401,6 @@ public class ChessGame extends JFrame {
         else {
             output += "0-0-0";
         }
-
         output = output + (isCheckmate ? "#" : "") + (isCheck ? "+" : "");
 
         // log the given castle
@@ -359,6 +410,34 @@ public class ChessGame extends JFrame {
         else {
             int currentRow = moveLogModel.getRowCount() - 1;
             moveLogModel.setValueAt(output, currentRow, 1);
+        }
+    }
+
+    private void clearMoveLog() {
+        for (int i = moveLogModel.getRowCount() - 1; i >= 0; i--) {
+            moveLogModel.removeRow(i);
+        }
+    }
+
+    private String returnMoveLog() {
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i < moveLogModel.getRowCount(); i++) {
+            s.append(i + 1).append(".");
+            for (int j = 0; j < 2; j++) {
+                Object move = moveLogModel.getValueAt(i,j).toString().trim();
+                s.append(move.toString().trim()).append(" ");
+            }
+        }
+        return s.toString();
+    }
+
+    private void writeToPGN(String s) {
+        File file = new File("movelog.txt");
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(s);
+        }
+        catch (IOException e) {
+            System.out.println("ERROR in writeToPGN method.");
         }
     }
 
