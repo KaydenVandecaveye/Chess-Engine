@@ -30,6 +30,10 @@ public class ChessGame extends JFrame {
 
     private boolean colorToMove = true; // T for W, F for B
 
+    /**
+     * ChessGame constructor
+     * @param board The underlying board representation.
+     */
     public ChessGame(Board board) {
         chessBoard = board;
 
@@ -100,9 +104,9 @@ public class ChessGame extends JFrame {
         resetGameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // clear internal board state & load starting position
+                // clear internal board state & update fields
                 chessBoard.clear();
-                Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", chessBoard);
+
                 colorToMove = true;
                 chessBoard.whiteInCheck = false;
                 chessBoard.blackInCheck = false;
@@ -117,6 +121,9 @@ public class ChessGame extends JFrame {
 
                 // clear move log
                 clearMoveLog();
+
+                //re-run game
+                run();
             }
         });
 
@@ -137,7 +144,7 @@ public class ChessGame extends JFrame {
     }
 
     /**
-     * Initializes GUI chess boards starting position.
+     * Initializes GUI chess board.
      */
     private void initializeBoard() {
         boolean isBlack = false;
@@ -168,6 +175,9 @@ public class ChessGame extends JFrame {
         }
     }
 
+    /**
+     * Removes all pieces in chess GUI
+     */
     private void clearBoard() {
         for (int i = 0; i < squares.length; i++) {
             for (int j = 0; j < squares[0].length; j++) {
@@ -188,6 +198,10 @@ public class ChessGame extends JFrame {
         return !colorToMove;
     }
 
+    /**
+     * Shows the game over dialog
+     * @param whiteWon
+     */
     public void showCheckmateDialog(boolean whiteWon) {
         String message;
         // Icon image;
@@ -305,6 +319,11 @@ public class ChessGame extends JFrame {
         // System.out.println(chessBoard.toString());
     }
 
+    /**
+     * Maps a given piece to a letter for proper chess notation.
+     * @param chessPiece The piece
+     * @return The chess notation letter associated with the piece.
+     */
     private String mapPiece(Piece chessPiece) {
         String s;
         s = switch (chessPiece) {
@@ -413,15 +432,25 @@ public class ChessGame extends JFrame {
         }
     }
 
+    /**
+     * Clears move log.
+     */
     private void clearMoveLog() {
         for (int i = moveLogModel.getRowCount() - 1; i >= 0; i--) {
             moveLogModel.removeRow(i);
         }
     }
 
+    /**
+     * Iterates through the move log to creates a string of all logged moves and returns it.
+     * @return String of the full move log.
+     */
     private String returnMoveLog() {
         StringBuilder s = new StringBuilder();
         for (int i = 0; i < moveLogModel.getRowCount(); i++) {
+            if (i % 10 == 0) {
+                s.append("\n");
+            }
             s.append(i + 1).append(".");
             for (int j = 0; j < 2; j++) {
                 Object move = moveLogModel.getValueAt(i,j).toString().trim();
@@ -431,6 +460,10 @@ public class ChessGame extends JFrame {
         return s.toString();
     }
 
+    /**
+     * Writes whatever string is passed in to a text file.
+     * @param s
+     */
     private void writeToPGN(String s) {
         File file = new File("movelog.txt");
         try (FileWriter writer = new FileWriter(file)) {
@@ -536,6 +569,20 @@ public class ChessGame extends JFrame {
     }
 
     /**
+     * Runs the chess game after a ChessGame instance is made.
+     */
+    private void run() {
+        Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", chessBoard);
+        Timer timer = new Timer(100, e -> {
+            if (isGameOver()) {
+                showCheckmateDialog(decideWinner());
+                ((Timer) e.getSource()).stop();
+            }
+        });
+        timer.start();
+    }
+
+    /**
      * Adds a given piece to GUI board representation based on passed in coordinates.
      * @param row
      * @param col
@@ -548,16 +595,7 @@ public class ChessGame extends JFrame {
     }
 
     public static void main(String[] args) {
-        Board board = new Board();
-        Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", board);
-        ChessGame chess = new ChessGame(board);
-
-        Timer timer = new Timer(100, e -> {
-            if (chess.isGameOver()) {
-                chess.showCheckmateDialog(chess.decideWinner());
-                ((Timer) e.getSource()).stop();
-            }
-        });
-        timer.start();
+        ChessGame chessGame = new ChessGame(new Board());
+        chessGame.run();
     }
 }
