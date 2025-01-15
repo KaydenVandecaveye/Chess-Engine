@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JOptionPane;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.io.File;
 import java.io.FileWriter;
@@ -20,6 +21,10 @@ public class ChessGame extends JFrame {
     private final JPanel boardPanel;
     private final JPanel[][] squares = new JPanel[8][8]; // 2d array of GUI representation of the boards squares
     private final Board chessBoard; // game logic representation of ches game
+    private final JPanel topPanel;
+    JLabel colorToMoveLabel;
+    JLabel blackInCheckLabel;
+    JLabel whiteInCheckLabel;
     DefaultTableModel moveLogModel;
 
     // piece/square selection fields
@@ -133,6 +138,38 @@ public class ChessGame extends JFrame {
 
         logPanel.setPreferredSize(new Dimension(200, 600));
 
+        // create top panel & it's components to display checks and color to move.
+        topPanel = new JPanel(new FlowLayout());
+        topPanel.setBorder(BorderFactory.createCompoundBorder(
+                topPanel.getBorder(),
+                BorderFactory.createMatteBorder(0, 0, 2, 0, Color.BLACK)
+        ));
+        topPanel.setBackground(Color.LIGHT_GRAY);
+
+
+        // color to move label
+        colorToMoveLabel = new JLabel("Turn to Move: " + (colorToMove ? "White":"Black"));
+
+        colorToMoveLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        colorToMoveLabel.setToolTipText("Indicates whose turn it is to move.");
+
+        // check labels
+        whiteInCheckLabel = new JLabel("White in check: " + chessBoard.whiteInCheck);
+        blackInCheckLabel = new JLabel("Black in check: " + chessBoard.blackInCheck);
+
+        whiteInCheckLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        blackInCheckLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        whiteInCheckLabel.setToolTipText("Indicates if white is in check.");
+        blackInCheckLabel.setToolTipText("Indicates if black is in check.");
+
+
+
+        // add components
+        topPanel.add(colorToMoveLabel);
+        topPanel.add(whiteInCheckLabel);
+        topPanel.add(blackInCheckLabel);
+
         // add rows
         container.add(rowCoords,BorderLayout.WEST);
         // add cols
@@ -140,7 +177,21 @@ public class ChessGame extends JFrame {
 
         add(container,BorderLayout.CENTER);
         add(logPanel,BorderLayout.WEST);
+        add(topPanel,BorderLayout.NORTH);
         setVisible(true);
+    }
+
+    private void updateTurn() {
+         colorToMoveLabel.setText("Turn to Move: " + (colorToMove ? "White":"Black"));
+         repaint();
+         revalidate();
+    }
+
+    private void updateChecks() {
+        whiteInCheckLabel.setText("White in check: " + chessBoard.whiteInCheck);
+        blackInCheckLabel.setText("Black in check: " + chessBoard.blackInCheck);
+        repaint();
+        revalidate();
     }
 
     /**
@@ -304,6 +355,7 @@ public class ChessGame extends JFrame {
         // move piece for game logic
         chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol,false);
         chessBoard.checkOnBoard();
+        updateChecks();
 
         destination.revalidate();
         destination.repaint();
@@ -313,7 +365,6 @@ public class ChessGame extends JFrame {
             // add move to game log
             logMove(chessPiece,sourceCol, destCol, destRow, isCapture);
         }
-
 
         // for debug
         // System.out.println(chessBoard.toString());
@@ -487,6 +538,7 @@ public class ChessGame extends JFrame {
                 movePiece(selectedPiece,selectedSquare,squares[row][col], false);
             }
             colorToMove = !colorToMove;
+            updateTurn();
             resetHighlights();
             chessBoard.checkOnBoard();
         }
