@@ -2,11 +2,11 @@
 
 ## Description
 
-The Chess Engine is a fully functional chess game built using Java. It allows two-player gameplay or player vs. computer (PvC) mode, with a basic AI opponent. The game follows traditional chess rules and includes a user-friendly graphical interface developed with Java Swing.
+This Chess Engine is a fully functional chess game built using Java. It allows two-player gameplay (PvP) or player vs. computer (PvC) mode, with an AI opponent. The game follows traditional chess rules and includes a graphical interface developed with Java Swing.
 
 ## Motivation
 
-I created this chess engine because I love chess and wanted to explore programming concepts such as game trees, AI algorithms, and user interface design. The goal was to build a customizable chess game that could be easily expanded with new features like enhanced AI, multiplayer, and more.
+This project was originally a simple chess terminal project for my CSCI 1933 class (Data Structures & Algorithms), after it's completion I decided I wanted to add more features because I love chess and wanted to explore programming concepts such as game trees, AI algorithms, and user interface design. The goal was to build a customizable chess game that could be expanded with new features like enhanced AI, multiplayer, and more.
 
 ## Features
 
