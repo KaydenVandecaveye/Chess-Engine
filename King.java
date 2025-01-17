@@ -1,7 +1,7 @@
 package CSCI1933P2;
 
 public class King extends Piece {
-    private boolean hasMoved = false;
+    public boolean hasMoved = false;
 
     public King(int row, int col, boolean isBlack) {
         super.col = col;
@@ -51,8 +51,11 @@ public class King extends Piece {
 
     // Check if king side castling is possible
     private boolean canCastleKingside(Board board) {
+        if (col > 4) {
+            return false;
+        }
         // Check if the square between the king and rook is empty
-        if (board.getPiece(row, col + 1) != null || board.getPiece(row, col + 2) != null) {
+        if (hasMoved || board.getPiece(row, col + 1) != null || board.getPiece(row, col + 2) != null) {
             return false;  // There are pieces blocking the way
         }
 
@@ -70,15 +73,18 @@ public class King extends Piece {
         return !((Rook) rook).hasMoved();   // All conditions for kingside castling are met
     }
 
-    // Check if queenside castling is possible
+    // Check if queen side castling is possible
     private boolean canCastleQueenside(Board board) {
-        // Check if the square between the king and rook is empty
-        if (board.getPiece(row, col - 1) != null || board.getPiece(row, col - 2) != null || board.getPiece(row, col - 3) != null) {
+        if (col < 4) {
+            return false;
+        }
+        // Check if the square between the king and rook is empty or if the king has moved
+        else if (board.getPiece(row, col - 1) != null || board.getPiece(row, col - 2) != null || board.getPiece(row, col - 3) != null) {
             return false;  // There are pieces blocking the way
         }
 
         // Check if the kings path is not under attack
-        if (board.isSquareUnderAttack(row, col - 1, isBlack) || board.isSquareUnderAttack(row, col - 2, isBlack) || board.isSquareUnderAttack(row, col - 3, isBlack)) {
+        else if (board.isSquareUnderAttack(row, col - 1, isBlack) || board.isSquareUnderAttack(row, col - 2, isBlack) || board.isSquareUnderAttack(row, col - 3, isBlack)) {
             return false;
         }
 
@@ -88,7 +94,7 @@ public class King extends Piece {
             return false;  // Rook has moved or is missing
         }
 
-        return !((Rook) rook).hasMoved();   // All conditions for queenside castling are met
+        return !((Rook) rook).hasMoved();   // All conditions for queen side castling are met
     }
 
     // Method to perform the castling move

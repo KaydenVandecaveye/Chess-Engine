@@ -11,6 +11,10 @@ public class Board {
     boolean whiteInCheck = false; // white K under attack
     boolean blackInCheck = false; // black K under attack
 
+    public static final String CHECKMATE = "checkmate";
+    public static final String STALEMATE = "stalemate";
+    public static final String ONGOING = "ongoing";
+
     //default constructor
     public Board() {
         this.board = new Piece[8][8]; // initialize the board to chessboard dimensions.
@@ -61,11 +65,10 @@ public class Board {
             int king_col = whiteKingPos[1];
             // legal move from black piece to white K
             if (piece.canMoveTo(this, king_row, king_col)) {
-                whiteInCheck = true;
                 return true;
             }
             else {
-                whiteInCheck = false;
+                return false;
             }
         }
         // white piece block
@@ -74,28 +77,33 @@ public class Board {
             int king_col = blackKingPos[1];
             // legal move from white piece to black K
             if (piece.canMoveTo(this, king_row, king_col)) {
-                blackInCheck = true;
                 return true;
             }
             else {
-                blackInCheck = false;
+                return false;
             }
         }
         return false;
     }
 
-    // determines if there is a check on the board
+    // Determines if there is a check on the board
     public void checkOnBoard() {
+        whiteInCheck = false;
+        blackInCheck = false;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                if (this.isCheck(board[i][j])) {
-                    return;
+                Piece piece = board[i][j];
+                if (piece != null && isCheck(piece)) {
+                    if (piece.isBlack) {
+                        whiteInCheck = true;
+                    } else {
+                        blackInCheck = true;
+                    }
                 }
             }
         }
-        whiteInCheck = false;
-        blackInCheck = false;
     }
+
 
     // Movement helper functions
     /**
@@ -332,6 +340,7 @@ public class Board {
                 // if king is castling
 
                 if (piece instanceof King) {
+                    ((King) piece).setHasMoved(!sim);
                     if (piece.isBlack) {
                         setBlackKingPos(endRow,endCol);
                     }
@@ -410,7 +419,7 @@ public class Board {
      * Returns true if a given color is in check and no legal moves block / evade check.
      * @return If the game is in a game over state / checkmate.
      */
-    public boolean isGameOver() {
+    public boolean isCheckmate() {
         if (whiteInCheck) {
             return !legalMoveOnBoard(false);
         }
@@ -419,6 +428,29 @@ public class Board {
         }
         return false;
     }
+
+    public boolean isStaleMate(boolean isWhiteToMove){
+        if (isWhiteToMove && !whiteInCheck) {
+            return !legalMoveOnBoard(false);
+        }
+        else if (!isWhiteToMove && !blackInCheck) {
+            return !legalMoveOnBoard(true);
+        }
+        return false;
+    }
+
+    public String gameStatus(boolean isWhiteToMove) {
+        String status;
+        if (isCheckmate()) {
+            status = CHECKMATE;
+        } else if (isStaleMate(isWhiteToMove)) {
+            status = STALEMATE;
+        } else {
+            status = ONGOING;
+        }
+        return status;
+    }
+
 
     /**
      * Sets all indexes in the board to null

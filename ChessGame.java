@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JOptionPane;
-import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.io.File;
 import java.io.FileWriter;
@@ -21,7 +20,7 @@ public class ChessGame extends JFrame {
     private final JPanel boardPanel;
     private final JPanel[][] squares = new JPanel[8][8]; // 2d array of GUI representation of the boards squares
     private final Board chessBoard; // game logic representation of ches game
-    private final JPanel topPanel;
+    JPanel topPanel;
     JLabel colorToMoveLabel;
     JLabel blackInCheckLabel;
     JLabel whiteInCheckLabel;
@@ -33,7 +32,7 @@ public class ChessGame extends JFrame {
     private int selectedPieceCol = -1;
     private JPanel selectedSquare = null;
 
-    private boolean colorToMove = true; // T for W, F for B
+    private boolean isWhiteToMove = true;
 
     /**
      * ChessGame constructor
@@ -44,7 +43,7 @@ public class ChessGame extends JFrame {
 
         // build frame
         setSize(800,600);
-        setTitle("Chess");
+        setTitle("Chess-Engine");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -112,13 +111,18 @@ public class ChessGame extends JFrame {
                 // clear internal board state & update fields
                 chessBoard.clear();
 
-                colorToMove = true;
+                isWhiteToMove= true;
                 chessBoard.whiteInCheck = false;
                 chessBoard.blackInCheck = false;
+                chessBoard.setWhiteKingPos(7,4);
+                chessBoard.setBlackKingPos(0,4);
 
                 // clear GUI board state & load starting position
                 clearBoard();
                 initializePieces();
+                resetHighlights();
+                updateChecks();
+                updateTurn();
 
                 // ensure board updated
                 repaint();
@@ -148,7 +152,7 @@ public class ChessGame extends JFrame {
 
 
         // color to move label
-        colorToMoveLabel = new JLabel("Turn to Move: " + (colorToMove ? "White":"Black"));
+        colorToMoveLabel = new JLabel("Color to Move: " + (isWhiteToMove? "White":"Black"));
 
         colorToMoveLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         colorToMoveLabel.setToolTipText("Indicates whose turn it is to move.");
@@ -162,8 +166,6 @@ public class ChessGame extends JFrame {
 
         whiteInCheckLabel.setToolTipText("Indicates if white is in check.");
         blackInCheckLabel.setToolTipText("Indicates if black is in check.");
-
-
 
         // add components
         topPanel.add(colorToMoveLabel);
@@ -181,12 +183,18 @@ public class ChessGame extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Updates the turn on the top panel of the GUI display.
+     */
     private void updateTurn() {
-         colorToMoveLabel.setText("Turn to Move: " + (colorToMove ? "White":"Black"));
+         colorToMoveLabel.setText("Color to Move: " + (isWhiteToMove? "White":"Black"));
          repaint();
          revalidate();
     }
 
+    /**
+     * Updates the checks on the top panel of the GUI display.
+     */
     private void updateChecks() {
         whiteInCheckLabel.setText("White in check: " + chessBoard.whiteInCheck);
         blackInCheckLabel.setText("Black in check: " + chessBoard.blackInCheck);
@@ -241,28 +249,24 @@ public class ChessGame extends JFrame {
         repaint();
     }
 
-    /**
-     * Once there the game is over, we iterate through the board to determine who won.
-     * @return T for White won, B for Black won.
-     */
-    public boolean decideWinner() {
-        return !colorToMove;
-    }
 
     /**
      * Shows the game over dialog
-     * @param whiteWon
      */
-    public void showCheckmateDialog(boolean whiteWon) {
+    public void showEndGameDialog() {
         String message;
+        boolean isMate = chessBoard.gameStatus(isWhiteToMove).equals(Board.CHECKMATE);
         // Icon image;
-        if (whiteWon) {
+        if (isMate && !isWhiteToMove) {
             message = "Checkmate, White Wins!";
             //image = new ImageIcon("/Users/kaydenvandecaveye/PersonalProjects/SWE/Chess/whiteking.png");
         }
-        else {
+        else if (isMate) {
             message = "Checkmate, Black Wins!";
             //image = new ImageIcon("/Users/kaydenvandecaveye/PersonalProjects/SWE/Chess/blackking.png");
+        }
+        else {
+            message = "Stalemate!";
         }
         JOptionPane.showMessageDialog(this, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -301,7 +305,6 @@ public class ChessGame extends JFrame {
 
         // initialize chess piece (for underlying board representation)
         Piece chessPiece = chessBoard.getPiece(sourceRow,sourceCol);
-
 
         source.remove(piece);
         source.repaint();
@@ -360,14 +363,17 @@ public class ChessGame extends JFrame {
         destination.revalidate();
         destination.repaint();
 
-
         if (!isCastle && !hasLogged) {
             // add move to game log
             logMove(chessPiece,sourceCol, destCol, destRow, isCapture);
         }
 
         // for debug
-        // System.out.println(chessBoard.toString());
+        System.out.println(chessBoard.toString());
+        int[] whiteKingPos = chessBoard.getWhiteKingPos();
+        int[] blackKingPos = chessBoard.getBlackKingPos();
+        System.out.println("WhiteKing:" + ((King) chessBoard.getPiece(whiteKingPos[0],whiteKingPos[1])).hasMoved);
+        System.out.println("BlackKing:" + ((King) chessBoard.getPiece(blackKingPos[0],blackKingPos[1])).hasMoved);
     }
 
     /**
@@ -435,7 +441,7 @@ public class ChessGame extends JFrame {
      * @param isCapture If move captures another piece.
      */
     private void logMove(Piece piece, int sourceCol, int destCol, int destRow, boolean isCapture) {
-        boolean isCheckmate = chessBoard.isGameOver();
+        boolean isCheckmate = chessBoard.isCheckmate();
         boolean isCheck = (!isCheckmate) && (chessBoard.blackInCheck || chessBoard.whiteInCheck);
 
 
@@ -446,7 +452,7 @@ public class ChessGame extends JFrame {
             output = (mapCoords(sourceCol, true) + "x" + mapCoords(destCol,true) + mapCoords(destRow,false) + '\n');
         }
 
-        if (colorToMove) {
+        if (isWhiteToMove) {
             moveLogModel.addRow(new Object[] {output, ""});
         }
         else {
@@ -460,7 +466,7 @@ public class ChessGame extends JFrame {
      * @param kingSide Used to determine if a castle is kingSide or queenSide because they have different PGN notation.
      */
     private void logCastle(boolean kingSide) {
-        boolean isCheckmate = chessBoard.isGameOver();
+        boolean isCheckmate = chessBoard.isCheckmate();
         boolean isCheck = (!isCheckmate) && chessBoard.blackInCheck || chessBoard.whiteInCheck;
         String output = "";
 
@@ -474,7 +480,7 @@ public class ChessGame extends JFrame {
         output = output + (isCheckmate ? "#" : "") + (isCheck ? "+" : "");
 
         // log the given castle
-        if (colorToMove) {
+        if (isWhiteToMove) {
             moveLogModel.addRow(new Object[] {output, ""});
         }
         else {
@@ -537,7 +543,7 @@ public class ChessGame extends JFrame {
             if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isMoveLegal(chessBoard,row,col)) {
                 movePiece(selectedPiece,selectedSquare,squares[row][col], false);
             }
-            colorToMove = !colorToMove;
+            isWhiteToMove= !isWhiteToMove;
             updateTurn();
             resetHighlights();
             chessBoard.checkOnBoard();
@@ -554,7 +560,7 @@ public class ChessGame extends JFrame {
                 selectedPieceCol = col;
                 selectedSquare = squares[row][col];
 
-                if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol) != null && chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isBlack != colorToMove) {
+                if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol) != null && chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isBlack != isWhiteToMove) {
                     // generate legal moves and highlight
                     int[][] legalMoves = chessBoard.board[row][col].generateLegalMoves(chessBoard);
                     highlightMoves(legalMoves);
@@ -594,8 +600,8 @@ public class ChessGame extends JFrame {
         }
     }
     private boolean isGameOver() {
-        if (chessBoard.isGameOver()) {
-
+        if (chessBoard.gameStatus(isWhiteToMove).equals(Board.CHECKMATE) || chessBoard.gameStatus(isWhiteToMove).equals(Board.STALEMATE)) {
+            System.out.println("Game status: " + chessBoard.gameStatus(isWhiteToMove));
             return true;
         }
         return false;
@@ -625,9 +631,18 @@ public class ChessGame extends JFrame {
      */
     private void run() {
         Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", chessBoard);
+//        int[] whiteKingPos = chessBoard.getWhiteKingPos();
+//        int[] blackKingPos = chessBoard.getBlackKingPos();
+//
+//        Piece whiteKing = (chessBoard.getPiece(whiteKingPos[0], whiteKingPos[1]));
+//        Piece blackKing = (chessBoard.getPiece(blackKingPos[0], blackKingPos[1]));
+//
+//        ((King) whiteKing).setHasMoved(false);
+//        ((King) blackKing).setHasMoved(false);
+
         Timer timer = new Timer(100, e -> {
             if (isGameOver()) {
-                showCheckmateDialog(decideWinner());
+                showEndGameDialog();
                 ((Timer) e.getSource()).stop();
             }
         });
@@ -649,5 +664,5 @@ public class ChessGame extends JFrame {
     public static void main(String[] args) {
         ChessGame chessGame = new ChessGame(new Board());
         chessGame.run();
+        }
     }
-}

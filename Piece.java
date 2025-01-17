@@ -32,7 +32,6 @@ public abstract class Piece {
      * @return True if the move to the destination square is legal, false otherwise.
      */
     public boolean isMoveLegal(Board board, int endRow, int endCol) {
-
         if (this instanceof King && ((King) this).canCastle(board,endRow, endCol)) {
             return true;
         }
