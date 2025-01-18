@@ -353,14 +353,14 @@ public class Board {
                 }
 
                 // pawn promotion
-                if (piece instanceof Pawn && piece.isBlack && endRow == 7 && !sim) {
+                if (piece instanceof Pawn && piece.isBlack && endRow == 7 && !sim) { // black pawn
                     piece = ((Pawn) piece).promotePawn(this,startRow,startCol,true);
 
                     board[endRow][endCol] = piece;
                     board[startRow][startCol] = null;
                     piece.setPosition(endRow, endCol);
                 }
-                else if (piece instanceof Pawn && !piece.isBlack && endRow == 0 && !sim) {
+                else if (piece instanceof Pawn && !piece.isBlack && endRow == 0 && !sim) { // white pawn
                     piece = ((Pawn) piece).promotePawn(this,startRow,startCol,false);
 
                     board[endRow][endCol] = piece;
@@ -517,5 +517,21 @@ public class Board {
             }
         }
         return false;  // The square is not under attack
+    }
+
+    public void setKingPos() {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                Piece piece = getPiece(i,j);
+                if (piece instanceof King) {
+                    if (piece.isBlack) {
+                        setBlackKingPos(i,j);
+                    }
+                    else {
+                        setWhiteKingPos(i,j);
+                    }
+                }
+            }
+        }
     }
 }

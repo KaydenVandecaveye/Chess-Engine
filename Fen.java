@@ -19,6 +19,60 @@ import java.util.Map;
 import java.util.function.Function;
 
 public class Fen {
+    public static String[] blackPieces = {"♜", "♞", "♝", "♛", "♚", "♟"};
+    public static String[] whitePieces = {"♖", "♘", "♗", "♕", "♔", "♙"};
+
+    /**
+     * Method used to populate the gui with pieces based on a FEN string.
+     * @param fen
+     * @param c
+     */
+    public static void loadGUI(String fen, ChessGame c) {
+        int rank = 0;   // Rank or row of the board
+        int square = 0; // Square in 'rank'
+        char query;     // Temp holder for current char
+
+        c.clearBoard();
+
+        // Begin hashmap solution
+        Map<Character, String> map = new HashMap<>();
+
+        map.put('p', blackPieces[5]);
+        map.put('P', whitePieces[5]);
+        map.put('r', blackPieces[0]);
+        map.put('R', whitePieces[0]);
+        map.put('n', blackPieces[1]);
+        map.put('N', whitePieces[1]);
+        map.put('b', blackPieces[2]);
+        map.put('B', whitePieces[2]);
+        map.put('q', blackPieces[3]);
+        map.put('Q', whitePieces[3]);
+        map.put('k', blackPieces[4]);
+        map.put('K', whitePieces[4]);
+
+        for (int i = 0; i < fen.length(); i++) {
+            query = fen.charAt(i);
+            if (query == '/') {
+                rank++;
+                square = 0;
+            }
+            else if (Character.isDigit(query)) {
+                square += Character.getNumericValue(query);
+            }
+            else {
+                String piece = map.get(query);
+                if (piece == null) {
+                    throw new IllegalArgumentException("Invalid FEN character: " + query);
+                }
+
+                c.addPiece(rank,square,piece);
+                square++;
+            }
+        }
+        c.revalidate();
+        c.repaint();
+    }
+
     /**
      * Method for populating a Board object with chess
      * pieces based on the FEN code passed in.

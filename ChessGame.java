@@ -18,7 +18,7 @@ import java.io.IOException;
 public class ChessGame extends JFrame {
     // board representation fields
     private final JPanel boardPanel;
-    private final JPanel[][] squares = new JPanel[8][8]; // 2d array of GUI representation of the boards squares
+    public final JPanel[][] squares = new JPanel[8][8]; // 2d array of GUI representation of the boards squares
     private final Board chessBoard; // game logic representation of ches game
     JPanel topPanel;
     JLabel colorToMoveLabel;
@@ -53,7 +53,7 @@ public class ChessGame extends JFrame {
         // build chess board
         boardPanel = new JPanel(new GridLayout(8,8));
         initializeBoard();
-        initializePieces();
+        Fen.loadGUI("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",this);
         container.add(boardPanel, BorderLayout.CENTER);
 
         // build row coords (1 - 8)
@@ -108,31 +108,8 @@ public class ChessGame extends JFrame {
         resetGameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // clear internal board state & update fields
-                chessBoard.clear();
-
-                isWhiteToMove= true;
-                chessBoard.whiteInCheck = false;
-                chessBoard.blackInCheck = false;
-                chessBoard.setWhiteKingPos(7,4);
-                chessBoard.setBlackKingPos(0,4);
-
-                // clear GUI board state & load starting position
-                clearBoard();
-                initializePieces();
-                resetHighlights();
-                updateChecks();
-                updateTurn();
-
-                // ensure board updated
-                repaint();
-                revalidate();
-
-                // clear move log
-                clearMoveLog();
-
-                //re-run game
-                run();
+                resetGame();
+                run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
             }
         });
 
@@ -202,6 +179,30 @@ public class ChessGame extends JFrame {
         revalidate();
     }
 
+    private void resetGame() {
+        // clear internal board state & update fields
+        chessBoard.clear();
+
+        isWhiteToMove= true;
+        chessBoard.whiteInCheck = false;
+        chessBoard.blackInCheck = false;
+        chessBoard.setWhiteKingPos(7,4);
+        chessBoard.setBlackKingPos(0,4);
+
+        // clear GUI board state & load starting position
+        Fen.loadGUI("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",this);
+        resetHighlights();
+        updateChecks();
+        updateTurn();
+
+        // ensure board updated
+        repaint();
+        revalidate();
+
+        // clear move log
+        clearMoveLog();
+    }
+
     /**
      * Initializes GUI chess board.
      */
@@ -234,10 +235,11 @@ public class ChessGame extends JFrame {
         }
     }
 
+
     /**
      * Removes all pieces in chess GUI
      */
-    private void clearBoard() {
+    public void clearBoard() {
         for (int i = 0; i < squares.length; i++) {
             for (int j = 0; j < squares[0].length; j++) {
                 if (squares[i][j].getComponentCount() > 0) {
@@ -372,8 +374,8 @@ public class ChessGame extends JFrame {
         System.out.println(chessBoard.toString());
         int[] whiteKingPos = chessBoard.getWhiteKingPos();
         int[] blackKingPos = chessBoard.getBlackKingPos();
-        System.out.println("WhiteKing:" + ((King) chessBoard.getPiece(whiteKingPos[0],whiteKingPos[1])).hasMoved);
-        System.out.println("BlackKing:" + ((King) chessBoard.getPiece(blackKingPos[0],blackKingPos[1])).hasMoved);
+        System.out.println("WhiteKing:" + whiteKingPos[0]+ whiteKingPos[1]);
+        System.out.println("BlackKing:" + blackKingPos[0] + blackKingPos[1]);
     }
 
     /**
@@ -608,38 +610,11 @@ public class ChessGame extends JFrame {
     }
 
     /**
-     * Initializes pieces on GUI board representation in the normal starting chess position.
-     */
-    private void initializePieces() {
-        String[] blackBackRow = {"♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"};
-        String blackPawn = "♟";
-        String[] whiteBackRow = {"♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"};
-        String whitePawn = "♙";
-
-        for (int col = 0; col < 8; col++) {
-            // black pieces
-            addPiece(0,col,blackBackRow[col]);
-            addPiece(1,col,blackPawn);
-            // white pieces
-            addPiece(7,col,whiteBackRow[col]);
-            addPiece(6,col,whitePawn);
-        }
-    }
-
-    /**
      * Runs the chess game after a ChessGame instance is made.
      */
-    private void run() {
-        Fen.load("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", chessBoard);
-//        int[] whiteKingPos = chessBoard.getWhiteKingPos();
-//        int[] blackKingPos = chessBoard.getBlackKingPos();
-//
-//        Piece whiteKing = (chessBoard.getPiece(whiteKingPos[0], whiteKingPos[1]));
-//        Piece blackKing = (chessBoard.getPiece(blackKingPos[0], blackKingPos[1]));
-//
-//        ((King) whiteKing).setHasMoved(false);
-//        ((King) blackKing).setHasMoved(false);
-
+    private void run(String s) {
+        Fen.load(s, chessBoard);
+        chessBoard.setKingPos();
         Timer timer = new Timer(100, e -> {
             if (isGameOver()) {
                 showEndGameDialog();
@@ -663,6 +638,7 @@ public class ChessGame extends JFrame {
 
     public static void main(String[] args) {
         ChessGame chessGame = new ChessGame(new Board());
-        chessGame.run();
+        Fen.loadGUI("8/6P1/8/8/8/8/8/7k",chessGame);
+        chessGame.run("8/6P1/8/8/8/8/8/7k");
         }
     }
