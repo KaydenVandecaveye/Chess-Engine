@@ -24,8 +24,8 @@ public class Fen {
 
     /**
      * Method used to populate the gui with pieces based on a FEN string.
-     * @param fen
-     * @param c
+     * @param fen A valid FEN string
+     * @param c ChessGame object to be populated.
      */
     public static void loadGUI(String fen, ChessGame c) {
         int rank = 0;   // Rank or row of the board
@@ -84,6 +84,8 @@ public class Fen {
         int rank = 0;   // Rank or row of the board
         int square = 0; // Square in 'rank'
         char query;     // Temp holder for current char
+
+        b.clear();
 
         // Begin hashmap solution
         Map<Character, Function<int[], Piece>> map = new HashMap<>();

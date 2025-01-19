@@ -95,8 +95,16 @@ public class ChessGame extends JFrame {
 
         // build button & button panel
         JPanel buttonPanel = new JPanel(new BorderLayout());
+
         JButton exportButton = new JButton("Export Move Log to PGN");
+        exportButton.setToolTipText("Exports the move log contents to a txt file in PGN format.");
+
         JButton resetGameButton = new JButton("Reset Game");
+        resetGameButton.setToolTipText("Resets the game to the starting position.");
+
+        JPanel fenPanel = new JPanel(new BorderLayout());
+        JTextField fenTextBox = new JTextField();
+        JButton loadFenButton = new JButton("Load FEN string");
 
         exportButton.addActionListener(new ActionListener() {
             @Override
@@ -113,8 +121,25 @@ public class ChessGame extends JFrame {
             }
         });
 
+        loadFenButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String fen = fenTextBox.getText();
+                Fen.loadGUI(fen, ChessGame.this);
+                Fen.load(fen, chessBoard);
+                chessBoard.setKingPos();
+                fenTextBox.setText("");
+            }
+        });
+
+        loadFenButton.setToolTipText("Loads a position based on an inputted FEN string.");
+        fenPanel.add(fenTextBox, BorderLayout.SOUTH);
+        fenPanel.add(loadFenButton, BorderLayout.NORTH);
+
+        buttonPanel.add(fenPanel, BorderLayout.SOUTH);
         buttonPanel.add(exportButton, BorderLayout.NORTH);
-        buttonPanel.add(resetGameButton, BorderLayout.SOUTH);
+        buttonPanel.add(resetGameButton, BorderLayout.CENTER);
+
         logPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         logPanel.setPreferredSize(new Dimension(200, 600));
@@ -374,8 +399,11 @@ public class ChessGame extends JFrame {
         System.out.println(chessBoard.toString());
         int[] whiteKingPos = chessBoard.getWhiteKingPos();
         int[] blackKingPos = chessBoard.getBlackKingPos();
-        System.out.println("WhiteKing:" + whiteKingPos[0]+ whiteKingPos[1]);
+        System.out.println("WhiteKing:" + whiteKingPos[0] + whiteKingPos[1]);
         System.out.println("BlackKing:" + blackKingPos[0] + blackKingPos[1]);
+
+        //System.out.println(((King) chessBoard.getPiece(whiteKingPos[0],whiteKingPos[1])).hasMoved);
+        //System.out.println(((King) chessBoard.getPiece(blackKingPos[0],blackKingPos[1])).hasMoved);
     }
 
     /**
@@ -612,8 +640,8 @@ public class ChessGame extends JFrame {
     /**
      * Runs the chess game after a ChessGame instance is made.
      */
-    private void run(String s) {
-        Fen.load(s, chessBoard);
+    private void run(String fen) {
+        Fen.load(fen, chessBoard);
         chessBoard.setKingPos();
         Timer timer = new Timer(100, e -> {
             if (isGameOver()) {
@@ -638,7 +666,7 @@ public class ChessGame extends JFrame {
 
     public static void main(String[] args) {
         ChessGame chessGame = new ChessGame(new Board());
-        Fen.loadGUI("8/6P1/8/8/8/8/8/7k",chessGame);
-        chessGame.run("8/6P1/8/8/8/8/8/7k");
+        Fen.loadGUI("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",chessGame);
+        chessGame.run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
         }
     }

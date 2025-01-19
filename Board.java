@@ -526,9 +526,15 @@ public class Board {
                 if (piece instanceof King) {
                     if (piece.isBlack) {
                         setBlackKingPos(i,j);
+                        if (i != 0 || j != 4) {
+                            ((King) getPiece(i,j)).setHasMoved(true);
+                        }
                     }
                     else {
                         setWhiteKingPos(i,j);
+                        if (i != 7 || j != 4) {
+                            ((King) getPiece(i,j)).setHasMoved(true);
+                        }
                     }
                 }
             }
