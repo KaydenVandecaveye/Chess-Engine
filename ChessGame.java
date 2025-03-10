@@ -126,7 +126,7 @@ public class ChessGame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 resetGame();
-                run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+                run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", true);
             }
         });
 
@@ -657,13 +657,22 @@ public class ChessGame extends JFrame {
     /**
      * Runs the chess game after a ChessGame instance is made.
      */
-    private void run(String fen) {
+    private void run(String fen, boolean isBot) {
         Fen.load(fen, chessBoard);
         chessBoard.setKingPos();
         Timer timer = new Timer(100, e -> {
             if (isGameOver()) {
                 showEndGameDialog();
                 ((Timer) e.getSource()).stop();
+            }
+            else if (isBot) {
+                if (!isWhiteToMove) {
+                    int[] botMove = bot.genMove(true);
+                    System.out.println(Arrays.toString(botMove));
+                    JLabel botPiece = ((JLabel) squares[botMove[0]][botMove[1]].getComponent(0));
+                    movePiece(botPiece, squares[botMove[0]][botMove[1]], squares[botMove[2]][botMove[3]], false);
+                    System.out.println("Bot moving piece from: (" + botMove[0] + "," + botMove[1] + ") to: (" + botMove[2] + "," + botMove[3] + ").");
+                }
             }
         });
         timer.start();
@@ -684,20 +693,7 @@ public class ChessGame extends JFrame {
     public static void main(String[] args) {
         Board chessBoard = new Board();
         ChessGame chessGame = new ChessGame(chessBoard);
-        ChessBot bot = new ChessBot(chessBoard);
         Fen.loadGUI("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", chessGame);
-        chessGame.run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-
-        if (false) {
-            while (!chessGame.isGameOver()) {
-                if (!chessGame.isWhiteToMove) {
-                    int[] botMove = bot.genMove();
-                    System.out.println(Arrays.toString(botMove));
-                    JLabel botPiece = ((JLabel) chessGame.squares[botMove[0]][botMove[1]].getComponent(0));
-                    chessGame.movePiece(botPiece, chessGame.squares[botMove[0]][botMove[1]], chessGame.squares[botMove[2]][botMove[3]], false);
-
-                }
-            }
-        }
+        chessGame.run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", true);
     }
 }
