@@ -1,5 +1,6 @@
 package CSCI1933P2;
 
+// ui
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,6 +12,10 @@ import javax.swing.table.DefaultTableModel;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+
+// data structures
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Class responsible for the GUI of the chess board & GUI game functionality.
@@ -34,12 +39,16 @@ public class ChessGame extends JFrame {
 
     private boolean isWhiteToMove = true;
 
+    // bot
+    ChessBot bot;
+
     /**
      * ChessGame constructor
      * @param board The underlying board representation.
      */
     public ChessGame(Board board) {
         chessBoard = board;
+        bot = new ChessBot(board);
 
         // build frame
         setSize(800,600);
@@ -127,8 +136,10 @@ public class ChessGame extends JFrame {
                 String fen = fenTextBox.getText();
                 Fen.loadGUI(fen, ChessGame.this);
                 Fen.load(fen, chessBoard);
+                isWhiteToMove = true; // change later when the color field functionality works with FEN strings
                 chessBoard.setKingPos();
                 fenTextBox.setText("");
+                clearMoveLog();
             }
         });
 
@@ -208,7 +219,7 @@ public class ChessGame extends JFrame {
         // clear internal board state & update fields
         chessBoard.clear();
 
-        isWhiteToMove= true;
+        isWhiteToMove = true;
         chessBoard.whiteInCheck = false;
         chessBoard.blackInCheck = false;
         chessBoard.setWhiteKingPos(7,4);
@@ -331,7 +342,7 @@ public class ChessGame extends JFrame {
         boolean isCapture = false;
 
         // initialize chess piece (for underlying board representation)
-        Piece chessPiece = chessBoard.getPiece(sourceRow,sourceCol);
+        Piece chessPiece = chessBoard.getPiece(sourceRow, sourceCol);
 
         source.remove(piece);
         source.repaint();
@@ -344,12 +355,10 @@ public class ChessGame extends JFrame {
         // pawn promotion check
         if (chessPiece instanceof Pawn) {
             if (chessPiece.isBlack && destRow == 7) {
-                addPiece(destRow,destCol,"♛");
-            }
-            else if (!chessPiece.isBlack && destRow == 0) {
-                addPiece(destRow,destCol,"♕");
-            }
-            else {
+                addPiece(destRow, destCol, "♛");
+            } else if (!chessPiece.isBlack && destRow == 0) {
+                addPiece(destRow, destCol, "♕");
+            } else {
                 destination.add(piece);
                 destination.revalidate();
             }
@@ -382,8 +391,12 @@ public class ChessGame extends JFrame {
             destination.add(piece);
         }
 
+        //testing
+        //System.out.println(chessBoard.generateAllLegalMoves());
+//        generateAllLegalMovesSystem.out.println(chessBoard.pieces.size());
+
         // move piece for game logic
-        chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol,false);
+        chessBoard.movePiece(sourceRow, sourceCol, destRow, destCol, false);
         chessBoard.checkOnBoard();
         updateChecks();
 
@@ -392,7 +405,11 @@ public class ChessGame extends JFrame {
 
         if (!isCastle && !hasLogged) {
             // add move to game log
-            logMove(chessPiece,sourceCol, destCol, destRow, isCapture);
+            logMove(chessPiece, sourceCol, destCol, destRow, isCapture);
+        }
+
+        if (!isCastle) {
+            isWhiteToMove = !isWhiteToMove;
         }
 
         // for debug
@@ -404,6 +421,7 @@ public class ChessGame extends JFrame {
 
         //System.out.println(((King) chessBoard.getPiece(whiteKingPos[0],whiteKingPos[1])).hasMoved);
         //System.out.println(((King) chessBoard.getPiece(blackKingPos[0],blackKingPos[1])).hasMoved);
+
     }
 
     /**
@@ -573,7 +591,6 @@ public class ChessGame extends JFrame {
             if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isMoveLegal(chessBoard,row,col)) {
                 movePiece(selectedPiece,selectedSquare,squares[row][col], false);
             }
-            isWhiteToMove= !isWhiteToMove;
             updateTurn();
             resetHighlights();
             chessBoard.checkOnBoard();
@@ -592,7 +609,7 @@ public class ChessGame extends JFrame {
 
                 if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol) != null && chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isBlack != isWhiteToMove) {
                     // generate legal moves and highlight
-                    int[][] legalMoves = chessBoard.board[row][col].generateLegalMoves(chessBoard);
+                    ArrayList<int[]> legalMoves = chessBoard.board[row][col].generateLegalMoves(chessBoard);
                     highlightMoves(legalMoves);
                 }
             }
@@ -603,7 +620,7 @@ public class ChessGame extends JFrame {
      * "highlights" moves from a passed in coordinate array.
      * @param moves 2d array containing moves.
      */
-    private void highlightMoves(int[][] moves) {
+    private void highlightMoves(ArrayList<int[]> moves) {
         for (int[] move : moves) {
             int moveRow = move[0];
             int moveCol = move[1];
@@ -665,8 +682,22 @@ public class ChessGame extends JFrame {
     }
 
     public static void main(String[] args) {
-        ChessGame chessGame = new ChessGame(new Board());
-        Fen.loadGUI("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",chessGame);
+        Board chessBoard = new Board();
+        ChessGame chessGame = new ChessGame(chessBoard);
+        ChessBot bot = new ChessBot(chessBoard);
+        Fen.loadGUI("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", chessGame);
         chessGame.run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+
+        if (false) {
+            while (!chessGame.isGameOver()) {
+                if (!chessGame.isWhiteToMove) {
+                    int[] botMove = bot.genMove();
+                    System.out.println(Arrays.toString(botMove));
+                    JLabel botPiece = ((JLabel) chessGame.squares[botMove[0]][botMove[1]].getComponent(0));
+                    chessGame.movePiece(botPiece, chessGame.squares[botMove[0]][botMove[1]], chessGame.squares[botMove[2]][botMove[3]], false);
+
+                }
+            }
         }
     }
+}

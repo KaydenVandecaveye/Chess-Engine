@@ -1,5 +1,8 @@
 package CSCI1933P2;
 
+import java.util.*;
+import java.util.ArrayList;
+
 public class Board {
     // Instance variables (add more if you need)
     public final Piece[][] board;
@@ -7,6 +10,9 @@ public class Board {
     // store king positions for faster lookups (used for testing if a king is in check)
     private int[] blackKingPos = {0, 4}; // (row, col)
     private int[] whiteKingPos = {7, 4};// (row, col)
+
+    public ArrayList<Piece> blackPieces;
+    public ArrayList<Piece> whitePieces;
 
     boolean whiteInCheck = false; // white K under attack
     boolean blackInCheck = false; // black K under attack
@@ -18,6 +24,8 @@ public class Board {
     //default constructor
     public Board() {
         this.board = new Piece[8][8]; // initialize the board to chessboard dimensions.
+        this.blackPieces = new ArrayList<>();
+        this.whitePieces = new ArrayList<>();
     }
     public int[] getBlackKingPos() {
         return blackKingPos;
@@ -64,12 +72,7 @@ public class Board {
             int king_row = whiteKingPos[0];
             int king_col = whiteKingPos[1];
             // legal move from black piece to white K
-            if (piece.canMoveTo(this, king_row, king_col)) {
-                return true;
-            }
-            else {
-                return false;
-            }
+            return piece.canMoveTo(this, king_row, king_col);
         }
         // white piece block
         else if (piece != null) {
@@ -322,7 +325,6 @@ public class Board {
     // Game functionality methods
     /**
      * Moves the piece from startRow, startCol to endRow, endCol if it is legal to do so.
-     * IMPORTANT: Make sure to update the internal position of the piece, and the starting position of the piece to null!
      * @param startRow  The starting row of the move.
      * @param startCol  The starting column of the move.
      * @param endRow    The ending row of the move.
@@ -413,6 +415,20 @@ public class Board {
             }
         }
         return false;
+    }
+
+    public HashMap<String, List<int[]>> generateAllLegalMoves() {
+        HashMap<String, List<int[]>> legalMoves = new HashMap<>();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (getPiece(i,j) != null) {
+                    ArrayList<int[]> moves = getPiece(i,j).generateLegalMoves(this);
+                    String start = Arrays.toString(new int[]{i, j});
+                    legalMoves.put(start, moves);
+                }
+            }
+        }
+        return legalMoves;
     }
 
     /**

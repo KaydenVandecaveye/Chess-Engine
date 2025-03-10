@@ -1,14 +1,14 @@
 package CSCI1933P2;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 
 public abstract class Piece {
 
     // Piece object's internal row position
-    protected int row;
+    public int row;
 
     // Piece object's internal col position
-    protected int col;
+    public int col;
 
     // Boolean representing Piece object's color (white/black)
     protected boolean isBlack;
@@ -16,14 +16,10 @@ public abstract class Piece {
     // Unicode character representing the piece
     protected char representation;
 
-    /**
-     * Checks if a move to a destination square is legal. (canMoveTo() method)
-     * Includes check rules from the isCheck() & checkOnBoard() methods.
-     * @param board     The game board.
-     * @param endRow    The row of the destination square.
-     * @param endCol    The column of the destination square.
-     * @return True if the move to the destination square is legal, false otherwise.
-     */
+    public int[] getPosition() {
+        return new int[] {row, col};
+    }
+
     /**
      * Checks if a move to a destination square is legal.
      * @param board     The game board.
@@ -124,17 +120,16 @@ public abstract class Piece {
         return representation + "";
     }
 
-    public int[][] generateLegalMoves(Board board) {
-        int[][] moves = new int[27][2];
-        int movesIdx = 0;
+    public ArrayList<int[]> generateLegalMoves(Board board) {
+        ArrayList<int[]> moves = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 if ((row != i || j != col) && isMoveLegal(board,i,j)) {
-                    moves[movesIdx] = new int[] {i, j};
-                    movesIdx++;
+                    int[] move = new int[] {i, j};
+                    moves.add(move);
                 }
             }
         }
-        return Arrays.copyOf(moves,movesIdx);
+        return moves;
     }
 }

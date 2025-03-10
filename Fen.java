@@ -115,7 +115,14 @@ public class Fen {
             } else { // Consult the map and create the piece
                 Function<int[], Piece> pieceConstructor = map.get(query);
                 if (pieceConstructor != null) {
-                    b.setPiece(rank, square, pieceConstructor.apply(new int[]{rank, square}));
+                    Piece newPiece = pieceConstructor.apply(new int[]{rank, square});
+                    b.setPiece(rank, square, newPiece);
+                    if (Character.isUpperCase(query)) {
+                        b.whitePieces.add(newPiece);
+                    }
+                    else {
+                        b.blackPieces.add(newPiece);
+                    }
                 }
                 square++;
             }
