@@ -14,6 +14,66 @@ public class Queen extends Piece {
         }
     }
 
+    public Queen copy() {
+        return new Queen(row, col, isBlack);
+    }
+
+    public int numOfLegalMoves(Board board) {
+        int num = 0;
+
+        // up right
+        for (int i = row; i < 8; i++) {
+            for (int j = col; j < 8; j++) {
+                if (i != row && j != col && isMoveLegal(board, i, j)) {
+                    num++;
+                }
+            }
+        }
+
+        // up left
+        for (int i = row; i >= 0; i--) {
+            for (int j = col; j < 8; j++) {
+                if (i != row && j != col && isMoveLegal(board, i, j)) {
+                    num++;
+                }
+            }
+        }
+
+        // down right
+        for (int i = row; i < 8; i++) {
+            for (int j = col; j >= 0; j--) {
+                if (i != row && j != col && isMoveLegal(board, i, j)) {
+                    num++;
+                }
+            }
+        }
+
+        // down left
+        for (int i = row; i >= 0; i--) {
+            for (int j = col; j >= 0; j--) {
+                if (i != row && j != col && isMoveLegal(board, i, j)) {
+                    num++;
+                }
+            }
+        }
+
+        // vertical
+        for (int j = 0; j < 8; j++) {
+            if (col != j && isMoveLegal(board, row, j)) {
+                num++;
+            }
+        }
+
+        // horizontal
+        for (int i = 0; i < 8; i++) {
+            if (row != i && isMoveLegal(board, i, col)) {
+                num++;
+            }
+        }
+
+        return num;
+    }
+
     @Override
     public boolean canMoveTo(Board board, int endRow, int endCol) {
         if (board.verifySourceAndDestination(this.row, this.col, endRow, endCol, isBlack)) {

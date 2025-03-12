@@ -667,7 +667,7 @@ public class ChessGame extends JFrame {
             }
             else if (isBot) {
                 if (!isWhiteToMove) {
-                    int[] botMove = bot.genMove(true);
+                    int[] botMove = bot.genMove();
                     System.out.println(Arrays.toString(botMove));
                     JLabel botPiece = ((JLabel) squares[botMove[0]][botMove[1]].getComponent(0));
                     movePiece(botPiece, squares[botMove[0]][botMove[1]], squares[botMove[2]][botMove[3]], false);

@@ -4,8 +4,7 @@ import java.util.*;
 import java.util.ArrayList;
 
 public class Board {
-    // Instance variables (add more if you need)
-    public final Piece[][] board;
+    public Piece[][] board;
 
     // store king positions for faster lookups (used for testing if a king is in check)
     private int[] blackKingPos = {0, 4}; // (row, col)
@@ -27,6 +26,37 @@ public class Board {
         this.blackPieces = new ArrayList<>();
         this.whitePieces = new ArrayList<>();
     }
+
+    public Board copy() { // creates a deep copy of a board instance. (Used for minimax algorithm)
+        Board copy = new Board();
+
+        copy.blackPieces = new ArrayList<>();
+        copy.whitePieces = new ArrayList<>();
+
+        // initialize copy of pieces in new board & array
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (getPiece(i,j) != null) {
+                    Piece copiedPiece = getPiece(i, j).copy();
+                    copy.setPiece(i, j, copiedPiece);
+                    if (copiedPiece.isBlack) {
+                        copy.blackPieces.add(copiedPiece);
+                        continue;
+                    }
+                    copy.whitePieces.add(copiedPiece);
+                }
+            }
+        }
+
+        // copy king pos and check flags
+        copy.setWhiteKingPos(whiteKingPos[0], whiteKingPos[1]);
+        copy.setBlackKingPos(blackKingPos[0], blackKingPos[1]);
+        copy.blackInCheck = blackInCheck;
+        copy.whiteInCheck = whiteInCheck;
+
+        return copy;
+    }
+
     public int[] getBlackKingPos() {
         return blackKingPos;
     }

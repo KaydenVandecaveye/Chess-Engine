@@ -29,6 +29,10 @@ public class Pawn extends Piece {
         }
     }
 
+    public Pawn copy() {
+        return new Pawn(row, col, isBlack);
+    }
+
     /**
      * Handle promotion of a pawn.
      * @param board Board instance
@@ -38,6 +42,23 @@ public class Pawn extends Piece {
      */
     public Piece promotePawn(Board board, int row, int col, boolean isBlack) {
         return new Queen(row,col,isBlack);
+    }
+
+    public int numOfLegalMoves(Board board) {
+        int num = 0;
+
+        int[][] directions = {
+                {0, 1}, {0, 2}, {1, 1}, {-1, 1}
+        };
+        for (int [] dir : directions) {
+            int newRow = row + dir[0];
+            int newCol = col + dir[1];
+            if ((newRow <= 7  && newRow >= 0) && (newCol <= 7  && newCol >= 0) && isMoveLegal(board, newRow, newCol)) {
+                num++;
+            }
+        }
+
+        return num;
     }
 
     @Override

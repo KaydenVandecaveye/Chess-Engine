@@ -20,6 +20,8 @@ public abstract class Piece {
         return new int[] {row, col};
     }
 
+    public abstract Piece copy();
+
     /**
      * Checks if a move to a destination square is legal.
      * @param board     The game board.
@@ -132,4 +134,6 @@ public abstract class Piece {
         }
         return moves;
     }
+
+    public abstract int numOfLegalMoves(Board board);
 }

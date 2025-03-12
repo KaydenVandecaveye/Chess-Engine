@@ -14,6 +14,30 @@ public class Knight extends Piece {
         }
     }
 
+    public Knight copy() {
+        return new Knight(row, col, isBlack);
+    }
+
+    public int numOfLegalMoves(Board board) {
+        int num = 0;
+
+        int[][] directions = {
+                {-1,2}, {1,2}, // up
+                {-2, 1}, {-2, -1}, // left
+                {-1, -2}, {1, -2}, // down
+                {-2,1}, {-2, -1} // right
+        };
+        for (int [] dir : directions) {
+            int newRow = row + dir[0];
+            int newCol = col + dir[1];
+            if ((newRow <= 7  && newRow >= 0) && (newCol <= 7  && newCol >= 0) && isMoveLegal(board, newRow, newCol)) {
+                num++;
+            }
+        }
+
+        return num;
+    }
+
     @Override
     public boolean canMoveTo(Board board, int endRow, int endCol) {
         if (board.verifySourceAndDestination(this.row, this.col, endRow, endCol, isBlack)) {

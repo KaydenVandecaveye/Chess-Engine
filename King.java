@@ -20,6 +20,31 @@ public class King extends Piece {
         hasMoved = moved;
     }
 
+    public King copy() {
+        King copy = new King(row, col, isBlack);
+        copy.setHasMoved(hasMoved);
+        return copy;
+    }
+
+    public int numOfLegalMoves(Board board) {
+        int num = 0;
+
+        int[][] directions = {
+                {-1, -1}, {-1, 0}, {-1, 1}, // top-left, top, top-right
+                { 0, -1}, { 0, 1},  // left, right
+                { 1, -1}, { 1, 0}, { 1, 1}   // bottom-left, bottom, bottom-right
+        };
+        for (int [] dir : directions) {
+            int newRow = row + dir[0];
+            int newCol = col + dir[1];
+            if ((newRow <= 7  && newRow >= 0) && (newCol <= 7  && newCol >= 0) && isMoveLegal(board, newRow, newCol)) {
+                num++;
+            }
+        }
+
+        return num;
+    }
+
     @Override
     public boolean canMoveTo(Board board, int endRow, int endCol) {
         if (board.verifySourceAndDestination(this.row, this.col, endRow, endCol, isBlack)) {
