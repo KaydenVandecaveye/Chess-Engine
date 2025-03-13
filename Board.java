@@ -15,6 +15,8 @@ public class Board {
 
     boolean whiteInCheck = false; // white K under attack
     boolean blackInCheck = false; // black K under attack
+    boolean whiteCastled = false;
+    boolean blackCastled = false;
 
     public static final String CHECKMATE = "checkmate";
     public static final String STALEMATE = "stalemate";
@@ -70,6 +72,29 @@ public class Board {
     public void setWhiteKingPos(int row, int col) {
         whiteKingPos[0] = row;
         whiteKingPos[1] = col;
+    }
+
+    public String pieceArrToString(ArrayList<Piece> arr) {
+        StringBuilder s = new StringBuilder();
+        for (Piece p : arr) {
+            s.append("(").append(p.row).append(",").append(p.col).append(")\n");
+        }
+        return s.toString();
+    }
+
+    public void initializePieceArrs() {
+        whitePieces = new ArrayList<>();
+        blackPieces = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (getPiece(i, j) != null && getPiece(i, j).isBlack) {
+                    blackPieces.add(getPiece(i, j));
+                }
+                else if (getPiece(i, j) != null && !getPiece(i, j).isBlack) {
+                    whitePieces.add(getPiece(i, j));
+                }
+            }
+        }
     }
 
     // Accessor Methods
@@ -421,7 +446,7 @@ public class Board {
         int count = 0;
         for (int i = 0; i < 8; i++){
             for (int j = 0; j < 8; j++) {
-                if((i != piece.row || j != piece.col) && piece.isMoveLegal(this,i,j)){
+                if((i != piece.row || j != piece.col) && piece.isMoveLegal(this,i,j)) {
                     count++;
                 }
             }
@@ -461,16 +486,34 @@ public class Board {
         return legalMoves;
     }
 
+    public HashMap<String, List<int[]>> generateLegalMovesByCol(boolean isBlack) {
+        HashMap<String, List<int[]>> legalMoves = new HashMap<>();
+        for (Piece p : isBlack ? blackPieces : whitePieces) {
+            ArrayList<int[]> moves = p.generateLegalMoves(this);
+            String start = Arrays.toString(new int[]{p.row, p.col});
+            legalMoves.put(start, moves);
+        }
+        return legalMoves;
+    }
+
     /**
      * Returns true if a given color is in check and no legal moves block / evade check.
      * @return If the game is in a game over state / checkmate.
      */
     public boolean isCheckmate() {
+        return whiteInCheckmate() || blackInCheckmate();
+    }
+
+    public boolean blackInCheckmate() {
+        if (blackInCheck) {
+            return !legalMoveOnBoard(true);
+        }
+        return false;
+    }
+
+    public boolean whiteInCheckmate() {
         if (whiteInCheck) {
             return !legalMoveOnBoard(false);
-        }
-        else if (blackInCheck) {
-            return !legalMoveOnBoard(true);
         }
         return false;
     }

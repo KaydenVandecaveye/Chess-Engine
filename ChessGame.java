@@ -408,9 +408,13 @@ public class ChessGame extends JFrame {
             logMove(chessPiece, sourceCol, destCol, destRow, isCapture);
         }
 
+        System.out.println(isWhiteToMove);
         if (!isCastle) {
             isWhiteToMove = !isWhiteToMove;
         }
+
+        updateTurn();
+        chessBoard.initializePieceArrs(); // re-initialize piece arrs after each move for now.
 
         // for debug
         System.out.println(chessBoard.toString());
@@ -591,7 +595,6 @@ public class ChessGame extends JFrame {
             if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isMoveLegal(chessBoard,row,col)) {
                 movePiece(selectedPiece,selectedSquare,squares[row][col], false);
             }
-            updateTurn();
             resetHighlights();
             chessBoard.checkOnBoard();
         }
@@ -672,6 +675,8 @@ public class ChessGame extends JFrame {
                     JLabel botPiece = ((JLabel) squares[botMove[0]][botMove[1]].getComponent(0));
                     movePiece(botPiece, squares[botMove[0]][botMove[1]], squares[botMove[2]][botMove[3]], false);
                     System.out.println("Bot moving piece from: (" + botMove[0] + "," + botMove[1] + ") to: (" + botMove[2] + "," + botMove[3] + ").");
+                    System.out.println("White Piece Array:\n" + chessBoard.pieceArrToString(chessBoard.whitePieces));
+                    System.out.println("Black Piece Array:\n" + chessBoard.pieceArrToString(chessBoard.blackPieces));
                 }
             }
         });

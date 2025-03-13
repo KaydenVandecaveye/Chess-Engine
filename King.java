@@ -141,6 +141,12 @@ public class King extends Piece {
         // Mark the king as having moved
         this.hasMoved = true;
 
+        if (isBlack) {
+            board.blackCastled = true;
+        }
+        else {
+            board.whiteCastled = true;
+        }
     }
 }
 
