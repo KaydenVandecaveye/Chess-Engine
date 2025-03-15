@@ -2,6 +2,7 @@ package CSCI1933P2;
 
 import java.util.*;
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class Board {
     public Piece[][] board;
@@ -13,6 +14,8 @@ public class Board {
     public ArrayList<Piece> blackPieces;
     public ArrayList<Piece> whitePieces;
 
+    public Stack<Move> moveHist;
+
     boolean whiteInCheck = false; // white K under attack
     boolean blackInCheck = false; // black K under attack
     boolean whiteCastled = false;
@@ -22,11 +25,14 @@ public class Board {
     public static final String STALEMATE = "stalemate";
     public static final String ONGOING = "ongoing";
 
+
+
     //default constructor
     public Board() {
         this.board = new Piece[8][8]; // initialize the board to chessboard dimensions.
         this.blackPieces = new ArrayList<>();
         this.whitePieces = new ArrayList<>();
+        this.moveHist = new Stack<>();
     }
 
     public Board copy() { // creates a deep copy of a board instance. (Used for minimax algorithm)
@@ -148,16 +154,20 @@ public class Board {
     public void checkOnBoard() {
         whiteInCheck = false;
         blackInCheck = false;
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                Piece piece = board[i][j];
-                if (piece != null && isCheck(piece)) {
-                    if (piece.isBlack) {
-                        whiteInCheck = true;
-                    } else {
-                        blackInCheck = true;
-                    }
-                }
+
+        // white pieces
+        for (int i = 0; i < whitePieces.size(); i++) {
+            Piece piece = whitePieces.get(i);
+            if(piece != null && isCheck(piece)) {
+                blackInCheck = true;
+            }
+        }
+
+        // black pieces
+        for (int j = 0; j < blackPieces.size(); j++) {
+            Piece piece = blackPieces.get(j);
+            if(piece != null && isCheck(piece)) {
+                whiteInCheck = true;
             }
         }
     }
@@ -387,6 +397,16 @@ public class Board {
      * @param sim   T or F for if the move is a simulated move or not. (Used so pawns aren't promoted when checking if a move leaves player in check)
      */
     public void movePiece(int startRow, int startCol, int endRow, int endCol, boolean sim) {
+        Piece movedPiece = getPiece(startRow, startCol);
+        Piece capturedPiece = getPiece(endRow, endCol);
+        if (!sim && capturedPiece != null) {
+            if (capturedPiece.isBlack) {
+                blackPieces.remove(capturedPiece);
+            }
+            else {
+                whitePieces.remove(capturedPiece);
+            }
+        }
         if (board[startRow][startCol] != null) {
                 Piece piece = board[startRow][startCol];
 
@@ -395,7 +415,6 @@ public class Board {
                 }
 
                 // if king is castling
-
                 if (piece instanceof King) {
                     ((King) piece).setHasMoved(!sim);
                     if (piece.isBlack) {
@@ -433,7 +452,58 @@ public class Board {
 
                     }
                 }
+
+            if (!sim) {
+                King wKing = ((King) getPiece(whiteKingPos[0], whiteKingPos[1]));
+                King bKing = ((King) getPiece(blackKingPos[0], blackKingPos[1]));
+                Move currMove = new Move(startRow, startCol, endRow, endCol, capturedPiece, movedPiece, bKing.hasMoved,
+                        wKing.hasMoved, whiteCastled, blackCastled, blackInCheck, whiteInCheck, blackPieces, whitePieces,
+                        whiteKingPos, blackKingPos);
+                System.out.println(currMove);
+                moveHist.push(currMove);
+            }
         }
+
+     public void undoMove(int traveledRow, int traveledCol, int originalRow, int originalCol, Piece capturedPiece, Piece originalPiece) {
+        movePiece(traveledRow, traveledCol, originalRow, originalCol, false);
+
+        if (capturedPiece != null) {
+            setPiece(traveledRow, traveledCol, capturedPiece);
+        }
+
+     }
+
+     public boolean[] getCurrFlags() {
+        boolean[] flags = new boolean[10];
+        flags[0] = whiteInCheck;
+        flags[1] = blackInCheck;
+        flags[2] = whiteCastled;
+        flags[3] = blackCastled;
+
+        flags[4] = ((King) getPiece(blackKingPos[0], blackKingPos[1])).hasMoved;
+        flags[5] = ((King) getPiece(whiteKingPos[0], whiteKingPos[1])).hasMoved;
+
+        // say rooks havent moved for now.
+        flags[6] = false;
+        flags[7] = false;
+        flags[8] = false;
+        flags[9] = false;
+
+        return flags;
+     }
+
+     public void setKingPosFlags() {
+        for (Piece p : whitePieces) {
+            if (p instanceof King) {
+                setWhiteKingPos(p.row, p.col);
+            }
+        }
+         for (Piece p : blackPieces) {
+             if (p instanceof King) {
+                 setBlackKingPos(p.row, p.col);
+             }
+         }
+     }
 
 
     /**

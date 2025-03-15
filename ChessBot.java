@@ -17,13 +17,13 @@ public class ChessBot {
         HashMap<String, List<int[]>> legalMoves = board.generateLegalMovesByCol(true);
 
         // debug
-        System.out.println("Num Pieces: " + legalMoves.size());
-        int totalMoves = legalMoves.values().stream().mapToInt(List::size).sum();
-        System.out.println("Total Legal Moves: " + totalMoves);
-        for (Map.Entry<String, List<int[]>> entry : legalMoves.entrySet()) {
-            System.out.println("Piece at " + entry.getKey() + " moves: " +
-                    entry.getValue().stream().map(Arrays::toString).collect(Collectors.joining(", ")));
-        }
+//        System.out.println("Num Pieces: " + legalMoves.size());
+//        int totalMoves = legalMoves.values().stream().mapToInt(List::size).sum();
+//        System.out.println("Total Legal Moves: " + totalMoves);
+//        for (Map.Entry<String, List<int[]>> entry : legalMoves.entrySet()) {
+//            System.out.println("Piece at " + entry.getKey() + " moves: " +
+//                    entry.getValue().stream().map(Arrays::toString).collect(Collectors.joining(", ")));
+//        }
 
         for (Piece p : board.blackPieces) {
             if (p == null || !p.isBlack) {
@@ -46,7 +46,7 @@ public class ChessBot {
             for (int[] pieceMove : pieceMoves) {
                 Board copy = board.copy();
                 copy.movePiece(startPos[0], startPos[1], pieceMove[0], pieceMove[1], false);
-                double eval = minimax(copy, 2, false);
+                double eval = minimax(copy, 2, false, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
                 if (currMove == null) {
                     currMove = new int[] {startPos[0], startPos[1], pieceMove[0], pieceMove[1]};
                 }
@@ -69,13 +69,13 @@ public class ChessBot {
         for (Piece piece : board.blackPieces) {
             if (piece != null) {
                 eval += getPieceVal(piece);
-                eval += piece.numOfLegalMoves(board) * 0.25;
+                eval += piece.numOfLegalMoves(board) * 0.1;
             }
         }
         for (Piece piece : board.whitePieces) {
             if (piece != null) {
                 eval -= getPieceVal(piece);
-                eval -= piece.numOfLegalMoves(board) * 0.25;
+                eval -= piece.numOfLegalMoves(board) * 0.1;
             }
         }
         if (board.blackInCheck && !board.blackInCheckmate()) {
@@ -111,7 +111,7 @@ public class ChessBot {
         };
     }
 
-    public double minimax(Board position, int depth, boolean maximizingPlayer) {
+    public double minimax(Board position, int depth, boolean maximizingPlayer, double alpha, double beta) {
         if (depth == 0 || position.isCheckmate()) {
             return evalBoard(position);
         }
@@ -135,11 +135,39 @@ public class ChessBot {
                     continue;
                 }
 
+                pieceMoves.sort((a, b) -> {
+                    double evalA = moveHeuristic(position, startPos, a);
+                    double evalB = moveHeuristic(position, startPos, b);
+                    return Double.compare(evalB, evalA);
+                });
+
+//                int movesToConsider = 0;
+//                switch (p) {
+//                    case King k -> movesToConsider = 3;
+//                    case Queen q -> movesToConsider = 8;
+//                    case Rook r -> movesToConsider = 6;
+//                    case Bishop b -> movesToConsider = 6;
+//                    case Knight n -> movesToConsider = 4;
+//                    case Pawn pawn -> movesToConsider = 3;
+//                    default -> System.out.println("Unknown piece type");
+//                }
+//
+//                if (pieceMoves.size() > movesToConsider) {
+//                    pieceMoves = pieceMoves.subList(0, movesToConsider);
+//                }
+
                 for (int[] pieceMove : pieceMoves) {
-                    Board copy = position.copy();
-                    copy.movePiece(pieceMove[0], pieceMove[1], pieceMove[0], pieceMove[1], false);
-                    double eval = minimax(copy, depth - 1, false);
+                    Piece capturedPiece = board.getPiece(pieceMove[0], pieceMove[1]);
+                    Piece originalPiece = board.getPiece(startPos[0], startPos[1]);
+
+                    position.movePiece(startPos[0], startPos[1], pieceMove[0], pieceMove[1], false);
+                    double eval = minimax(position, depth - 1, false, alpha, beta);
+                    position.undoMove(pieceMove[0], pieceMove[1], startPos[0], startPos[1], capturedPiece, originalPiece);
                     maxEval = Math.max(maxEval, eval);
+                    alpha = Math.max(alpha, maxEval);
+                    if (beta <= alpha) {
+                        return maxEval;
+                    }
                 }
             }
             return maxEval;
@@ -162,14 +190,60 @@ public class ChessBot {
                     continue;
                 }
 
+                pieceMoves.sort((a, b) -> {
+                    double evalA = moveHeuristic(position, startPos, a);
+                    double evalB = moveHeuristic(position, startPos, b);
+                    return Double.compare(evalA, evalB);
+                });
+
+//                int movesToConsider = 0;
+//                switch (p) {
+//                    case King k -> movesToConsider = 3;
+//                    case Queen q -> movesToConsider = 8;
+//                    case Rook r -> movesToConsider = 6;
+//                    case Bishop b -> movesToConsider = 6;
+//                    case Knight n -> movesToConsider = 4;
+//                    case Pawn pawn -> movesToConsider = 3;
+//                    default -> System.out.println("Unknown piece type");
+//                }
+//
+//                if (pieceMoves.size() > movesToConsider) {
+//                    pieceMoves = pieceMoves.subList(0, movesToConsider);
+//                }
+
                 for (int[] pieceMove : pieceMoves) {
-                    Board copy = position.copy();
-                    copy.movePiece(startPos[0], startPos[1], pieceMove[0], pieceMove[1], false);
-                    double eval = minimax(copy, depth - 1, true);
+                    Piece capturedPiece = board.getPiece(pieceMove[0], pieceMove[1]);
+                    Piece originalPiece = board.getPiece(startPos[0], startPos[1]);
+
+                    position.movePiece(startPos[0], startPos[1], pieceMove[0], pieceMove[1], false);
+                    double eval = minimax(position, depth - 1, false, alpha, beta);
+                    position.undoMove(pieceMove[0], pieceMove[1], startPos[0], startPos[1], capturedPiece, originalPiece);
                     minEval = Math.min(minEval, eval);
+                    beta = Math.min(beta, minEval);
+                    if (beta <= alpha) {
+                        return minEval;
+                    }
                 }
             }
             return minEval;
         }
+    }
+    public double moveHeuristic(Board position, int[] startPos, int[] move) { // used for move ordering
+        double score = 0;
+        Piece movedPiece = position.getPiece(startPos[0], startPos[1]);
+        Piece capturedPiece = position.getPiece(move[0], move[1]);
+        if (capturedPiece != null) {
+            score += 10 * getPieceVal(capturedPiece) - getPieceVal(movedPiece);
+        }
+        int centerBonus = (move[0] - 3) * (move[0] - 3) + (move[1] - 3) * (move[1] - 3);
+        score -= centerBonus;
+
+        Board copy = position.copy();
+        copy.movePiece(startPos[0], startPos[1], move[0], move[1], false);
+        if (copy.whiteInCheck || copy.blackInCheck) {
+            score += 50;
+        }
+
+        return score;
     }
 }

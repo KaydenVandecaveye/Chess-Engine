@@ -143,6 +143,7 @@ public class ChessGame extends JFrame {
             }
         });
 
+
         loadFenButton.setToolTipText("Loads a position based on an inputted FEN string.");
         fenPanel.add(fenTextBox, BorderLayout.SOUTH);
         fenPanel.add(loadFenButton, BorderLayout.NORTH);
@@ -593,7 +594,11 @@ public class ChessGame extends JFrame {
         // Case 1: PLayer wants to move to a highlighted square. (move previously selected piece)
         if (square.getBackground().equals(new Color(255, 110, 75)) && selectedPiece != null) {
             if (chessBoard.getPiece(selectedPieceRow,selectedPieceCol).isMoveLegal(chessBoard,row,col)) {
+//                System.out.println("Black King Position before piece move: " + chessBoard.getBlackKingPos()[0] + "," + chessBoard.getBlackKingPos()[1]);
+//                System.out.println("White King Position before piece move: " + chessBoard.getWhiteKingPos()[0] + "," + chessBoard.getWhiteKingPos()[1]);
                 movePiece(selectedPiece,selectedSquare,squares[row][col], false);
+//                System.out.println("Black King Position after piece move: " + chessBoard.getBlackKingPos()[0] + "," + chessBoard.getBlackKingPos()[1]);
+//                System.out.println("White King Position after piece move: " + chessBoard.getWhiteKingPos()[0] + "," + chessBoard.getWhiteKingPos()[1]);
             }
             resetHighlights();
             chessBoard.checkOnBoard();
@@ -670,7 +675,11 @@ public class ChessGame extends JFrame {
             }
             else if (isBot) {
                 if (!isWhiteToMove) {
+                    long startTime = System.nanoTime();
                     int[] botMove = bot.genMove();
+                    long endTime = System.nanoTime();
+
+                    System.out.println("Bot move generated in: " + (endTime - startTime) / 1_000_000_000.0 + "s.");
                     System.out.println(Arrays.toString(botMove));
                     JLabel botPiece = ((JLabel) squares[botMove[0]][botMove[1]].getComponent(0));
                     movePiece(botPiece, squares[botMove[0]][botMove[1]], squares[botMove[2]][botMove[3]], false);
@@ -699,6 +708,6 @@ public class ChessGame extends JFrame {
         Board chessBoard = new Board();
         ChessGame chessGame = new ChessGame(chessBoard);
         Fen.loadGUI("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", chessGame);
-        chessGame.run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", true);
+        chessGame.run("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", false);
     }
 }
