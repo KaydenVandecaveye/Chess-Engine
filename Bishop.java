@@ -1,6 +1,7 @@
 package CSCI1933P2;
 
 public class Bishop extends Piece {
+
     public Bishop(int row, int col, boolean isBlack) {
         super.col = col;
         super.row = row;
@@ -16,6 +17,14 @@ public class Bishop extends Piece {
 
     public Bishop copy() {
         return new Bishop(row, col, isBlack);
+    }
+
+    @Override
+    public double positionalValue() { // on the diagonal and not too far in the center
+        if ((row == col || (row + col) == 7) && col >= 3 && col <= 4 && row >= 3 && row <= 4) {
+            return 25;
+        }
+        return 0;
     }
 
     @Override

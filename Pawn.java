@@ -33,6 +33,19 @@ public class Pawn extends Piece {
         return new Pawn(row, col, isBlack);
     }
 
+    @Override
+    public double positionalValue() {
+        double eval = 0;
+        if (row >= 2 && row <= 4) { // reward central pawn moves
+            eval += 25;
+            if (col >= 3 && col <= 4) {
+                eval += 25;
+            }
+        }
+        return eval;
+    }
+
+
     /**
      * Handle promotion of a pawn.
      * @param board Board instance

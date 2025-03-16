@@ -70,12 +70,14 @@ public class ChessBot {
         for (Piece piece : board.blackPieces) {
             if (piece != null) {
                 eval += getPieceVal(piece);
+                eval += piece.positionalValue();
                 eval += piece.numOfLegalMoves(board) * 0.25;
             }
         }
         for (Piece piece : board.whitePieces) {
             if (piece != null) {
                 eval -= getPieceVal(piece);
+                eval -= piece.positionalValue();
                 eval -= piece.numOfLegalMoves(board) * 0.25;
             }
         }

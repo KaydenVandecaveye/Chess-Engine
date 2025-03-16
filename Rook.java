@@ -30,6 +30,11 @@ public class Rook extends Piece {
         return copy;
     }
 
+    @Override
+    public double positionalValue() {
+        return 0;
+    }
+
     public int numOfLegalMoves(Board board) {
         int num = 0;
 

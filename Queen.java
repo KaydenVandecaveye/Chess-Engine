@@ -18,6 +18,11 @@ public class Queen extends Piece {
         return new Queen(row, col, isBlack);
     }
 
+    @Override
+    public double positionalValue() {
+        return 0;
+    }
+
     public int numOfLegalMoves(Board board) {
         int num = 0;
 

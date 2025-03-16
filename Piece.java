@@ -20,6 +20,8 @@ public abstract class Piece {
         return new int[] {row, col};
     }
 
+    public abstract double positionalValue();
+
     public abstract Piece copy();
 
     /**

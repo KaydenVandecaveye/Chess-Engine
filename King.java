@@ -26,6 +26,21 @@ public class King extends Piece {
         return copy;
     }
 
+    @Override
+    public double positionalValue() {
+        if (isBlack) {
+            if ((row <= 1 && col <= 2) || (row <= 1 && col >= 5)) {
+                return 50;
+            }
+        }
+        else {
+            if ((row >= 6 && col <= 2) || (row >= 6 && col >= 5)) {
+                return 50;
+            }
+        }
+        return 0;
+    }
+
     public int numOfLegalMoves(Board board) {
         int num = 0;
 

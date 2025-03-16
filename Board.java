@@ -35,19 +35,20 @@ public class Board {
         copy.blackPieces = new ArrayList<>();
         copy.whitePieces = new ArrayList<>();
 
-        // initialize copy of pieces in new board & array
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (getPiece(i,j) != null) {
-                    Piece copiedPiece = getPiece(i, j).copy();
-                    copy.setPiece(i, j, copiedPiece);
-                    if (copiedPiece.isBlack) {
-                        copy.blackPieces.add(copiedPiece);
-                        continue;
-                    }
-                    copy.whitePieces.add(copiedPiece);
-                }
-            }
+        // black pieces
+        for(int i = 0; i < blackPieces.size(); i++) {
+            Piece piece = blackPieces.get(i);
+            Piece copiedPiece = piece.copy();
+            copy.setPiece(copiedPiece.row, copiedPiece.col, copiedPiece);
+            copy.blackPieces.add(copiedPiece);
+        }
+
+        // white pieces
+        for(int j = 0; j < whitePieces.size(); j++) {
+            Piece piece = whitePieces.get(j);
+            Piece copiedPiece = piece.copy();
+            copy.setPiece(copiedPiece.row, copiedPiece.col, copiedPiece);
+            copy.whitePieces.add(copiedPiece);
         }
 
         // copy king pos and check flags
@@ -474,15 +475,17 @@ public class Board {
 
     public HashMap<String, List<int[]>> generateAllLegalMoves() {
         HashMap<String, List<int[]>> legalMoves = new HashMap<>();
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (getPiece(i,j) != null) {
-                    ArrayList<int[]> moves = getPiece(i,j).generateLegalMoves(this);
-                    String start = Arrays.toString(new int[]{i, j});
-                    legalMoves.put(start, moves);
-                }
-            }
+
+        // black pieces
+        for (Piece piece : blackPieces) {
+            legalMoves.put(Arrays.toString(new int[]{piece.getRow(), piece.getCol()}), piece.generateLegalMoves(this));
         }
+
+        // white pieces
+        for (Piece piece : whitePieces) {
+            legalMoves.put(Arrays.toString(new int[]{piece.getRow(), piece.getCol()}), piece.generateLegalMoves(this));
+        }
+
         return legalMoves;
     }
 

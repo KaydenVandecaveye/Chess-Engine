@@ -18,6 +18,14 @@ public class Knight extends Piece {
         return new Knight(row, col, isBlack);
     }
 
+    @Override
+    public double positionalValue() { // encourage movement to the center
+        if (row <= 5 && row >= 2 && col <= 5 && col >= 2) {
+            return 50;
+        }
+        return 0;
+    }
+
     public int numOfLegalMoves(Board board) {
         int num = 0;
 
