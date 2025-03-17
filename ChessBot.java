@@ -64,21 +64,53 @@ public class ChessBot {
         return currMove;
     }
 
+    public int numDefenders(Piece p) {
+        int[] piecePos = p.getPosition();
+        int netDefenders = 0;
+
+        if (p.isBlack) { // piece is black so black ++ & white --
+            for (Piece piece : board.blackPieces) {
+                if (!piece.equals(p) && piece.canMoveTo(board, piecePos[0], piecePos[1])) {
+                    netDefenders++;
+                }
+            }
+            for (Piece piece : board.whitePieces) {
+                if (!piece.equals(p) && piece.canMoveTo(board, piecePos[0], piecePos[1])) {
+                    netDefenders--;
+                }
+            }
+        }
+        else { // piece is white so white ++ & black --
+            for (Piece piece : board.whitePieces) {
+                if (!piece.equals(p) && piece.canMoveTo(board, piecePos[0], piecePos[1])) {
+                    netDefenders++;
+                }
+            }
+            for (Piece piece : board.blackPieces) {
+                if (!piece.equals(p) && piece.canMoveTo(board, piecePos[0], piecePos[1])) {
+                    netDefenders--;
+                }
+            }
+        }
+        return netDefenders;
+    }
 
     public double evalBoard(Board board) {
         double eval = 0;
         for (Piece piece : board.blackPieces) {
             if (piece != null) {
                 eval += getPieceVal(piece);
-                eval += piece.positionalValue();
-                eval += piece.numOfLegalMoves(board) * 0.25;
+//                eval += piece.positionalValue();
+                eval += piece.numOfLegalMoves(board);
+                eval += numDefenders(piece) * 2;
             }
         }
         for (Piece piece : board.whitePieces) {
             if (piece != null) {
                 eval -= getPieceVal(piece);
-                eval -= piece.positionalValue();
-                eval -= piece.numOfLegalMoves(board) * 0.25;
+//                eval -= piece.positionalValue();
+                eval -= piece.numOfLegalMoves(board);
+                eval -= numDefenders(piece) * 2;
             }
         }
         if (board.blackInCheck && !board.blackInCheckmate()) {
@@ -88,16 +120,16 @@ public class ChessBot {
             eval += 25;
         }
         else if(board.blackInCheckmate()) {
-            return -10000;
+            return Double.NEGATIVE_INFINITY;
         }
         else if(board.whiteInCheckmate()) {
-            return 10000;
+            return Double.POSITIVE_INFINITY;
         }
         else if (board.blackCastled) {
-            eval += 75;
+            eval += 150;
         }
         else if (board.whiteCastled) {
-            eval -= 75;
+            eval -= 150;
         }
 
         return eval;
@@ -178,7 +210,7 @@ public class ChessBot {
                     maxEval = Math.max(maxEval, eval);
                     alpha = Math.max(alpha, maxEval);
                     if (beta <= alpha) {
-                        return maxEval;
+                        break;
                     }
                 }
             }
@@ -239,7 +271,7 @@ public class ChessBot {
                     minEval = Math.min(minEval, eval);
                     beta = Math.min(beta, minEval);
                     if (beta <= alpha) {
-                        return minEval;
+                        break;
                     }
                 }
             }
